@@ -98,6 +98,80 @@
         scrollbar-width: none;
         background-color: #f4f2ec;
       }
+      /* --- 占卜师高级 SVG 样式与动画 --- */
+      .dealer-idle {
+        animation: dealer-float 4s ease-in-out infinite;
+        transform-origin: center center;
+      }
+      .dealer-dealing {
+        animation: dealer-cast 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+        transform-origin: center center;
+      }
+      .dealer-dealing .dealer-rune {
+        animation: rune-flare 0.8s ease-out forwards;
+      }
+      .dealer-dealing .dealer-hand-left {
+        animation: hand-move-l 0.8s ease-out forwards;
+      }
+      .dealer-dealing .dealer-hand-right {
+        animation: hand-move-r 0.8s ease-out forwards;
+      }
+      
+      @keyframes dealer-float {
+        0%, 100% { transform: translateY(0px) scale(1); }
+        50% { transform: translateY(-4px) scale(1.02); }
+      }
+      @keyframes dealer-cast {
+        0% { transform: translateY(0) scale(1); }
+        30% { transform: translateY(6px) scale(1.05) rotate(2deg); filter: drop-shadow(0 0 8px rgba(234, 179, 8, 0.4)); }
+        100% { transform: translateY(0) scale(1); }
+      }
+      @keyframes rune-flare {
+        0%, 100% { fill: #eab308; filter: drop-shadow(0 0 2px #eab308); }
+        30% { fill: #fef08a; filter: drop-shadow(0 0 10px #fef08a) brightness(1.5); }
+      }
+      @keyframes hand-move-l {
+        0%, 100% { transform: translate(0, 0); }
+        30% { transform: translate(10px, -5px) rotate(15deg); }
+      }
+      @keyframes hand-move-r {
+        0%, 100% { transform: translate(0, 0); }
+        30% { transform: translate(-10px, -5px) rotate(-15deg); }
+      }
+
+      .dealer-card-stack {
+        width: 24px;
+        height: 14px;
+        background: #f8fafc;
+        border: 2px solid #1c1917;
+        border-radius: 3px;
+        position: absolute;
+        bottom: 0;
+      }
+      .dealer-card-1 { transform: rotate(-3deg) translateY(-2px); }
+      .dealer-card-2 { transform: rotate(2deg) translateY(-4px); }
+      .dealer-card-3 { transform: rotate(-1deg) translateY(-6px); }
+
+      .dealer-bubble-show {
+        animation: bubble-pop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+      }
+      .flipped {
+        transform: rotateY(180deg) !important;
+      }
+      
+      .flash-white {
+        position: fixed;
+        inset: 0;
+        background: white;
+        z-index: 100;
+        pointer-events: none;
+        animation: flash-fade 0.1s ease-out forwards;
+      }
+
+      @keyframes flash-fade {
+        0% { opacity: 1; }
+        100% { opacity: 0; }
+      }
     </style>
   </head>
   <body class="bg-[#f4f2ec] text-stone-900 min-h-screen overflow-hidden font-arcade select-none antialiased flex flex-col items-center justify-center">
@@ -113,66 +187,139 @@
 
         <!-- VIEW 1: START SCREEN -->
         <div id="start-screen" class="absolute inset-0 flex flex-col justify-center items-center z-40 px-8 py-10 transition-all duration-500 ease-out text-stone-900">
-          <!-- Minimalist chalk outline boundary -->
+          <!-- 极简边框 -->
           <div class="absolute inset-6 border-2 border-stone-900/10 border-dashed pointer-events-none rounded-xl"></div>
           
-          <div class="text-center mb-6 relative">
-            <h1 class="relative text-4xl md:text-5xl font-black tracking-widest text-stone-900 mb-2 pb-1 border-b-3 border-stone-900 border-dashed">
-              命运防线：可爱手绘极速版
+          <div class="text-center mb-10 relative">
+            <h1 class="relative text-5xl md:text-6xl font-black tracking-[0.3em] text-stone-900 mb-4" style="font-family: 'Courier Prime', monospace;">
+              烦恼扫射
             </h1>
-            <span class="relative text-stone-900 text-xs md:text-sm font-bold tracking-[0.25em] border-3 border-stone-900 px-4 py-1.5 rounded-xl bg-white shadow-[3px_3px_0px_#1c1917]">
-              FATE&#39;S DEFENSE: SKETCH TURBO
-            </span>
+            <div class="w-16 h-0.5 bg-stone-900 mx-auto mb-5"></div>
+            <p class="text-stone-500 text-sm tracking-widest font-bold" style="font-family: 'Courier Prime', monospace;">
+              人生的每一站，都有不同的烦恼。
+            </p>
+            <p class="text-stone-400 text-xs tracking-wider mt-2 font-bold" style="font-family: 'Courier Prime', monospace;">
+              用你的方式，逐一击破它们。
+            </p>
           </div>
 
-          <p class="text-stone-700 text-xs text-center max-w-xl leading-relaxed mb-8 bg-white/95 p-4 border-3 border-stone-900 border-dashed rounded-xl relative z-10 font-sans shadow-[3px_3px_0px_#1c1917]">
-            这是一部以可爱手绘简体画风格重塑的极速割草动作游戏。所有的角色都是极粗手绘线条！使用 <span class="text-stone-950 font-black underline decoration-2">W A S D</span> 全向走位，机体将<span class="text-stone-950 font-black underline decoration-2">自动锁定</span>最近的敌人。
-            <br/>
-            玩家<span class="text-stone-950 font-black underline decoration-2">没有基础无敌帧</span>，受击即死！击杀达 10 的倍数时唤醒塔罗魔力提供<span class="text-stone-950 font-black underline decoration-2">无限叠加</span>属性，带你突破防线！
+          <div class="flex flex-col space-y-4 items-center relative z-10">
+            <button id="btn-start" class="chalk-button font-extrabold px-14 py-4 rounded-xl text-base tracking-[0.25em] uppercase transition-all duration-300 transform active:scale-95 cursor-pointer shadow-[4px_4px_0px_#1c1917]">
+              去击败烦恼
+            </button>
+            <button id="btn-sound-toggle" class="bg-white border-3 border-stone-900 text-stone-900 py-3 px-6 rounded-xl text-xs flex items-center space-x-2 transition cursor-pointer font-bold shadow-[2px_2px_0px_#1c1917] hover:bg-stone-50">
+              <span>🔇 启用音效</span>
+            </button>
+          </div>
+
+          <p class="mt-12 text-stone-300 text-[10px] tracking-widest font-bold" style="font-family: 'Courier Prime', monospace;">
+            WASD 移动 · 自动瞄准 · 逐一击破
           </p>
-
-          <!-- Bounded features checklist -->
-          <div class="grid grid-cols-2 gap-4 max-w-lg w-full mb-8 text-[11px] font-sans text-stone-700 relative z-10">
-            <div class="bg-white border-2 border-stone-900 rounded-xl p-2.5 flex items-center space-x-2 shadow-[2px_2px_0px_#1c1917]">
-              <span class="border-2 border-stone-900 text-stone-900 font-extrabold px-2 py-0.5 bg-stone-50 rounded-lg">WASD</span>
-              <span class="font-bold">手绘全向敏捷闪避</span>
-            </div>
-            <div class="bg-white border-2 border-stone-900 rounded-xl p-2.5 flex items-center space-x-2 shadow-[2px_2px_0px_#1c1917]">
-              <span class="border-2 border-stone-900 text-stone-900 font-extrabold px-2 py-0.5 bg-stone-50 rounded-lg">AIM</span>
-              <span class="font-bold">可爱自锁极速清剿</span>
-            </div>
-            <div class="bg-white border-2 border-stone-900 rounded-xl p-2.5 flex items-center space-x-2 shadow-[2px_2px_0px_#1c1917]">
-              <span class="border-2 border-stone-900 text-stone-900 font-extrabold px-2 py-0.5 bg-stone-50 rounded-lg">ONE HIT</span>
-              <span class="font-bold">触碰即碎的生命力</span>
-            </div>
-            <div class="bg-white border-2 border-stone-900 rounded-xl p-2.5 flex items-center space-x-2 shadow-[2px_2px_0px_#1c1917]">
-              <span class="border-2 border-stone-900 text-stone-900 font-extrabold px-2 py-0.5 bg-stone-50 rounded-lg">TAROT</span>
-              <span class="font-bold">命运之牌无限叠加</span>
-            </div>
-          </div>
-
-          <div class="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-6 items-center relative z-10">
-            <button id="btn-start" class="btn-action chalk-button font-extrabold px-12 py-3.5 rounded-xl text-base tracking-widest uppercase transition-all duration-300 transform active:scale-95 cursor-pointer shadow-[4px_4px_0px_#1c1917]">
-              擦拭画卷 · 开启命运
-            </button>
-            <button id="btn-sound-toggle" class="bg-white border-3 border-stone-900 text-stone-900 py-3.5 px-6 rounded-xl text-xs flex items-center space-x-2 transition cursor-pointer font-bold shadow-[2px_2px_0px_#1c1917] hover:bg-stone-50">
-              <span>🔇 启用合成音效</span>
-            </button>
-          </div>
-
-          <!-- Absolute record list -->
-          <div id="start-highscore" class="mt-6 text-xs text-stone-900 flex items-center gap-1.5 font-bold">
-            <span>🏆 历史最高击杀记录: <span id="highest-kills-record" class="font-black underline">0</span> Kills</span>
-          </div>
         </div>
 
         <!-- VIEW 2: GAME INTERFACE (ACTIVE GAMEPLAY CANVAS) -->
         <canvas id="game-canvas" class="z-10 w-full h-full block cursor-crosshair opacity-0 transition-opacity duration-500 ease-out"></canvas>
 
-        <!-- GAME HUD LAYERS -->
-        <div id="game-hud" class="absolute inset-0 pointer-events-none z-20 flex flex-col justify-between p-6 opacity-0 transition-opacity duration-300">
+        <!-- HUD LAYER OVERLAY -->
+        <div id="game-hud" class="absolute inset-0 pointer-events-none p-2 sm:p-3 flex flex-col justify-between z-20 opacity-0 transition-opacity duration-300">
           
-          <!-- Top Row info -->
+          <!-- 占卜师发牌层 (位于游戏框顶部中央) -->
+          <div id="dealer-layer" class="absolute top-0 left-1/2 -translate-x-1/2 z-30 pointer-events-none flex flex-col items-center drop-shadow-md" style="top: 8px;">
+            <!-- 占卜师角色 (高级SVG剪影) -->
+            <div id="dealer-character" class="dealer-idle flex flex-col items-center">
+              <svg viewBox="0 0 100 100" width="80" height="80" class="overflow-visible">
+                <defs>
+                  <linearGradient id="cloakGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                    <stop offset="0%" stop-color="#292524" />
+                    <stop offset="40%" stop-color="#1c1917" />
+                    <stop offset="100%" stop-color="#0a0a0a" />
+                  </linearGradient>
+                  <filter id="runeGlow" x="-50%" y="-50%" width="200%" height="200%">
+                    <feGaussianBlur stdDeviation="2" result="blur" />
+                    <feComposite in="SourceGraphic" in2="blur" operator="over" />
+                  </filter>
+                </defs>
+                
+                <!-- 背后星体轨道/魔法光环 -->
+                <circle cx="50" cy="35" r="38" stroke="#d6d3d1" stroke-width="0.5" fill="none" stroke-dasharray="3 3" opacity="0.4"/>
+                <circle cx="50" cy="35" r="30" stroke="#eab308" stroke-width="0.5" fill="none" stroke-dasharray="1 4" opacity="0.6"/>
+
+                <!-- 悬浮的左手 -->
+                <g class="dealer-hand-left">
+                  <path d="M 22 65 C 12 68, 8 75, 12 80 C 16 85, 26 78, 28 72 Z" fill="#fdf1e6" stroke="#1c1917" stroke-width="1"/>
+                  <!-- 手中漂浮的小卡牌/魔能 -->
+                  <rect x="15" y="55" width="8" height="12" fill="#fafaf7" stroke="#eab308" stroke-width="0.5" transform="rotate(-15 19 61)" opacity="0.8"/>
+                </g>
+
+                <!-- 悬浮的右手 -->
+                <g class="dealer-hand-right">
+                  <path d="M 78 65 C 88 68, 92 75, 88 80 C 84 85, 74 78, 72 72 Z" fill="#fdf1e6" stroke="#1c1917" stroke-width="1"/>
+                  <rect x="77" y="55" width="8" height="12" fill="#fafaf7" stroke="#eab308" stroke-width="0.5" transform="rotate(15 81 61)" opacity="0.8"/>
+                </g>
+
+                <!-- 兜帽披风主体 (流线型) -->
+                <path d="M50 2 
+                         C 68 2, 80 20, 85 45 
+                         C 88 65, 96 88, 92 92
+                         C 88 95, 80 92, 70 95
+                         C 60 98, 55 96, 50 96
+                         C 45 96, 40 98, 30 95
+                         C 20 92, 12 95, 8 92
+                         C 4 88, 12 65, 15 45
+                         C 20 20, 32 2, 50 2 Z" 
+                      fill="url(#cloakGrad)" stroke="#000" stroke-width="1"/>
+
+                <!-- 兜帽内部的无底深渊 (无脸) -->
+                <path d="M50 15
+                         C 62 15, 68 30, 65 48
+                         C 62 65, 55 75, 50 75
+                         C 45 75, 38 65, 35 48
+                         C 32 30, 38 15, 50 15 Z" 
+                      fill="#030305" />
+                      
+                <!-- 额头/面部的发光符文 (代替眼睛) -->
+                <path class="dealer-rune" d="M50 30 L55 40 L50 48 L45 40 Z" fill="#eab308" filter="url(#runeGlow)"/>
+                <circle class="dealer-rune" cx="50" cy="22" r="2" fill="#eab308" filter="url(#runeGlow)"/>
+
+                <!-- 披风上的垂坠褶皱 -->
+                <path d="M30 65 Q 22 85 18 92" stroke="#3f3f46" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+                <path d="M70 65 Q 78 85 82 92" stroke="#3f3f46" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+                <path d="M40 70 Q 45 88 48 95" stroke="#27272a" stroke-width="2" fill="none" stroke-linecap="round"/>
+                <path d="M60 70 Q 55 88 52 95" stroke="#27272a" stroke-width="2" fill="none" stroke-linecap="round"/>
+              </svg>
+            </div>
+            <!-- 桌面洗牌区 -->
+            <div id="dealer-table" class="relative w-24 h-8 mt-[-4px] flex justify-center">
+              <div class="dealer-card-stack dealer-card-1"></div>
+              <div class="dealer-card-stack dealer-card-2"></div>
+              <div class="dealer-card-stack dealer-card-3"></div>
+            </div>
+            <!-- 气泡框 -->
+            <div id="dealer-bubble" class="dealer-bubble-hidden absolute left-full ml-2 top-0 bg-white border-2 border-stone-900 rounded-lg p-2 shadow-[2px_2px_0px_#1c1917] flex flex-col items-center w-32 origin-left transition-all duration-300 z-40">
+              <span id="dealer-bubble-text" class="text-[9px] font-bold text-stone-800 leading-snug font-sans"></span>
+              <div class="bubble-arrow absolute -left-[7px] top-3 w-0 h-0 border-y-[6px] border-y-transparent border-r-[6px] border-r-stone-900"></div>
+              <div class="absolute -left-[4px] top-[13px] w-0 h-0 border-y-[4px] border-y-transparent border-r-[4px] border-r-white"></div>
+            </div>
+          </div>
+
+          <!-- 发牌飞行牌 (游戏框内绝对定位) -->
+          <div id="dealer-flying-card" class="absolute z-35 pointer-events-none opacity-0 flex items-center justify-center" style="width: 60px; height: 85px;">
+            <div id="dealer-card-flipper" class="dealer-card-flipper w-full h-full relative border-2 rounded-md shadow-lg" style="transform-style: preserve-3d; transition: transform 0.5s; border-color: #1c1917;">
+              <!-- 背面 -->
+              <div class="dealer-card-back absolute inset-0 bg-[#030305] rounded-md flex items-center justify-center p-1" style="backface-visibility: hidden;">
+                <div class="w-full h-full border border-dashed border-amber-500/30 rounded flex items-center justify-center bg-stone-900">
+                  <span class="text-amber-500/50 text-[8px] font-mono">ASTRA</span>
+                </div>
+              </div>
+              <div id="dealer-card-front-content" class="dealer-card-front absolute inset-0 bg-white rounded-md flex flex-col items-center justify-center p-1" style="backface-visibility: hidden; transform: rotateY(180deg);">
+                <span id="dfc-roman" class="text-[12px] font-serif font-black"></span>
+                <span id="dfc-icon" class="text-[20px] filter drop-shadow my-1"></span>
+                <span id="dfc-name" class="text-[8px] font-black font-sans leading-none text-center"></span>
+              </div>
+            </div>
+          </div>
+
+          <!-- TOP ROW: Score, HP & Phase Indicator -->
           <div class="flex justify-between items-start w-full">
             <!-- Left Header (Level, Time) -->
             <div class="flex items-center space-x-4">
@@ -207,14 +354,14 @@
               
               <!-- Core Kill metrics (Requested Kill counter details on right) -->
               <div class="flex flex-col bg-white px-4 py-2 border-3 border-stone-900 rounded-xl items-end shadow-[3px_3px_0px_#1c1917] pointer-events-auto">
-                <span class="text-[9px] text-stone-500 font-extrabold uppercase tracking-widest">命运唤物指标</span>
-                <span class="text-stone-900 font-black text-sm" id="hud-kill-count">KILLS: 0</span>
+                <span class="text-[9px] text-stone-500 font-extrabold uppercase tracking-widest">人生成长阶段</span>
+                <span class="text-stone-900 font-black text-sm" id="hud-kill-count">AGE: 1 岁</span>
                 <!-- Progress bar towards next tarot card choice (Every 10 kills) -->
                 <div class="flex items-center space-x-2.5 mt-1.5">
                   <div class="w-24 bg-stone-100 h-2 rounded-full overflow-hidden border-2 border-stone-900">
                     <div id="kill-progress-bar" class="bg-stone-900 h-full transition-all duration-300 w-0"></div>
                   </div>
-                  <span id="kill-progress-label" class="text-[9px] text-stone-600 font-mono font-bold">WAKE: 0 / 10</span>
+                  <span id="kill-progress-label" class="text-[9px] text-stone-600 font-mono font-bold">EXP: 0 / 10</span>
                 </div>
               </div>
             </div>
@@ -243,81 +390,10 @@
 
             <!-- Right Bottom: Machine tactical parameters & Tarot Auto Deck -->
             <div class="flex flex-col space-y-2 max-w-[190px] w-full items-stretch">
-              
-              <!-- Tarot Auto Deck Panel -->
-              <div id="tarot-auto-deck" class="flex flex-col bg-white p-2.5 border-3 border-stone-900 rounded-xl w-full shadow-[3px_3px_0px_#1c1917] pointer-events-auto relative overflow-visible select-none">
-                <span class="text-stone-900 font-extrabold border-b-2 border-stone-900 border-dashed pb-1 mb-1 font-arcade flex justify-between items-center text-[8.5px]">
-                  <span>🔮 命运圣契堆</span>
-                  <span class="text-[7px] text-green-600 font-black animate-pulse bg-green-50 border border-green-200 px-1 rounded">DECK ACTIVE</span>
-                </span>
-                
-                <div class="relative w-full h-14 bg-stone-50 border-2 border-dashed border-stone-300 rounded-lg flex items-center justify-center overflow-visible">
-                  <!-- Visual piled deck cards behind -->
-                  <div class="absolute -bottom-1 -right-1 w-full h-full bg-stone-100 border-2 border-stone-950 rounded-lg shadow-sm transform -rotate-2"></div>
-                  <div class="absolute bottom-0 right-0 w-full h-full bg-stone-200 border-2 border-stone-950 rounded-lg shadow-sm transform rotate-1"></div>
-                  
-                  <!-- Top active deck facing back -->
-                  <div class="absolute bottom-0.5 right-0.5 w-[96%] h-[96%] bg-white border-2 border-stone-950 rounded-lg flex items-center justify-center shadow-md transform transition-all duration-300 hover:-translate-y-0.5 hover:scale-102 cursor-pointer">
-                    <div class="absolute inset-1 border border-dashed border-stone-300 rounded flex flex-col items-center justify-center bg-[#fafaf7]">
-                      <span class="text-stone-800 font-black text-[9px] tracking-wide font-sans">DESTINY DECK</span>
-                      <span class="text-stone-400 font-mono text-[7px] font-bold mt-0.5">[AUTO DRAW]</span>
-                    </div>
-                  </div>
-
-                  <!-- Flying card overlay (Unfolds on draw event, flies to hand grid) -->
-                  <div id="flying-tarot-card" class="pointer-events-none absolute bottom-0.5 right-0.5 w-16 h-24 bg-white border-3 border-stone-950 rounded-lg shadow-[3px_3px_0px_#1c1917] z-50 opacity-0 transform scale-50 transition-all duration-1000 ease-in-out flex flex-col items-center justify-between p-1 overflow-hidden">
-                    <div class="w-full text-center border border-dashed border-stone-300 h-full flex flex-col items-center justify-between p-0.5">
-                      <span id="fly-card-roman" class="text-[8px] font-mono font-black text-stone-900">XIII</span>
-                      <span id="fly-card-icon" class="text-[12px] my-0.5">💀</span>
-                      <span id="fly-card-name" class="text-[7px] font-black tracking-tight text-center max-w-[65px] break-all leading-none text-stone-900">DEATH</span>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- Status Ticker details -->
-                <div id="deck-ticker" class="text-[7.5px] text-stone-500 font-mono font-bold mt-1.5 leading-none text-center">空闲 • 汇聚宿命灵魂能...</div>
-              </div>
-
-              <!-- Systems Parameters Panel -->
-              <div class="flex flex-col space-y-1 bg-white p-2.5 border-3 border-stone-900 rounded-xl text-[9px] font-mono text-stone-800 w-full shadow-[3px_3px_0px_#1c1917] pointer-events-auto">
-                <span class="text-stone-900 font-black border-b-2 border-stone-900 border-dashed pb-1 mb-1 font-arcade">📡 系统状态参数</span>
-                <div class="flex justify-between"><span>机体移速:</span><span id="stat-speed" class="text-stone-950 font-black">100%</span></div>
-                <div class="flex justify-between"><span>武器威力:</span><span id="stat-damage" class="text-stone-950 font-black">1.0X</span></div>
-                <div class="flex justify-between"><span>射击频率:</span><span id="stat-firerate" class="text-stone-950 font-black">5.0 /s</span></div>
-                <div class="flex justify-between"><span>弹道形态:</span><span id="stat-projectiles" class="text-stone-950 font-black">单体自锁</span></div>
-                <div class="flex justify-between"><span>战友伙伴:</span><span id="stat-allies" class="text-stone-950 font-black">0</span></div>
-              </div>
-
             </div>
           </div>
         </div>
 
-        <!-- VIEW 3: THREE-CARD TAROT CHOICE OVERLAY (PAUSES GAMEPLAY) -->
-        <div id="divination-screen" class="absolute inset-0 bg-[#fafaf7]/98 z-40 flex flex-col justify-center items-center opacity-0 pointer-events-none transition-all duration-300 scale-95 p-4 overflow-hidden select-none">
-          
-          <!-- Concentric Mystical Occult Background Circles in sketched blue lines -->
-          <div class="absolute inset-0 pointer-events-none flex items-center justify-center overflow-hidden opacity-[0.25]" id="occult-glow-ring">
-            <div class="w-[500px] h-[500px] rounded-full border border-dashed border-cyan-800 rotate-0 animate-occult-spin flex items-center justify-center">
-              <div class="w-[440px] h-[440px] rounded-full border-2 border-dashed border-cyan-800 flex items-center justify-center">
-                <div class="w-[300px] h-[300px] rounded-full border border-double border-cyan-800"></div>
-              </div>
-            </div>
-            <div class="absolute w-[380px] h-[380px] rounded-full border-2 border-cyan-800 animate-occult-spin-reverse flex items-center justify-center">
-              <div class="w-0 h-0 border-l-[180px] border-l-transparent border-r-[180px] border-r-transparent border-b-[311px] border-b-cyan-800/10 absolute"></div>
-              <div class="w-0 h-0 border-l-[180px] border-l-transparent border-r-[180px] border-r-transparent border-t-[311px] border-t-cyan-800/10 absolute"></div>
-            </div>
-          </div>
-
-          <div class="text-center mb-5 z-10 text-stone-900">
-            <span class="text-[11px] text-stone-900 font-extrabold tracking-[0.4em] uppercase">🔮 SKETCH DESTINY • 手绘契约降临 🔮</span>
-            <p class="text-[9.5px] text-stone-600 mt-1 font-bold">达成击杀，命运尘埃正在画布上勾勒新的手绘塔罗手牌...</p>
-          </div>
-
-          <!-- Dynamic single reveal card container -->
-          <div id="divination-cards-container" class="flex flex-col justify-center items-center max-w-lg w-full z-10 pointer-events-auto">
-            <!-- Divination card reveal structure auto-injected dynamically here -->
-          </div>
-        </div>
 
         <!-- VIEW 4: GAME OVER SCREEN -->
         <div id="gameover-screen" class="absolute inset-0 z-40 bg-[#fafaf7]/98 flex flex-col justify-center items-center p-8 opacity-0 pointer-events-none transition-all duration-300">
@@ -361,6 +437,28 @@
             </button>
             <button id="btn-back-menu" class="border-3 border-stone-900 hover:bg-stone-900 hover:text-white bg-white text-stone-900 px-6 py-3.5 rounded-xl text-xs transition cursor-pointer font-bold shadow-[2px_2px_0px_#1c1917]">
               返回主页
+            </button>
+          </div>
+        </div>
+
+        <!-- VIEW 5: VICTORY SCREEN (通关白屏) -->
+        <div id="victory-screen" class="absolute inset-0 z-50 flex flex-col justify-center items-center opacity-0 pointer-events-none transition-opacity duration-[2000ms]" style="background: #ffffff;">
+          
+          <div class="text-center max-w-lg px-8">
+            <p id="victory-line1" class="text-stone-800 text-xl font-bold tracking-widest leading-relaxed opacity-0" style="transition: opacity 2s ease; font-family: 'Courier Prime', monospace;">
+              你击败了人生里所有的烦恼。
+            </p>
+            <p id="victory-line2" class="text-stone-600 text-lg tracking-wide leading-relaxed mt-8 opacity-0" style="transition: opacity 2.5s ease 0.5s; font-family: 'Courier Prime', monospace;">
+              现在，去击败生活中真正属于你的那些。
+            </p>
+          </div>
+
+          <div id="victory-buttons" class="flex flex-col space-y-4 mt-16 opacity-0" style="transition: opacity 1.5s ease;">
+            <button id="btn-victory-ngplus" class="chalk-button font-extrabold px-10 py-4 rounded-xl text-sm tracking-widest uppercase transition-all transform active:scale-95 cursor-pointer shadow-[4px_4px_0px_#1c1917]">
+              携底牌重启人生 · 二周目
+            </button>
+            <button id="btn-victory-menu" class="border-3 border-stone-900 hover:bg-stone-900 hover:text-white bg-white text-stone-900 px-8 py-3.5 rounded-xl text-xs transition cursor-pointer font-bold shadow-[2px_2px_0px_#1c1917]">
+              回到主菜单
             </button>
           </div>
         </div>
@@ -481,6 +579,24 @@
         } catch (e) {}
       }
 
+      function playSynthesisChargeSound() {
+        if (!soundEnabled || !audioCtx) return;
+        try {
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          osc.type = 'sawtooth';
+          osc.frequency.setValueAtTime(50, audioCtx.currentTime);
+          osc.frequency.exponentialRampToValueAtTime(600, audioCtx.currentTime + 0.8);
+          gain.gain.setValueAtTime(0, audioCtx.currentTime);
+          gain.gain.linearRampToValueAtTime(0.2, audioCtx.currentTime + 0.6);
+          gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.85);
+          osc.connect(gain);
+          gain.connect(audioCtx.destination);
+          osc.start();
+          osc.stop(audioCtx.currentTime + 0.9);
+        } catch (e) {}
+      }
+
       function playCardSweep() {
         if (!soundEnabled || !audioCtx) return;
         try {
@@ -519,7 +635,6 @@
       const startScreen = document.getElementById('start-screen');
       const gameCanvas = document.getElementById('game-canvas');
       const gameHud = document.getElementById('game-hud');
-      const divinationScreen = document.getElementById('divination-screen');
       const gameoverScreen = document.getElementById('gameover-screen');
 
       const btnStart = document.getElementById('btn-start');
@@ -541,15 +656,9 @@
       const replacementCardName = document.getElementById('replacement-card-name');
       const ultimateContainer = document.getElementById('ultimate-container');
 
-      const statSpeed = document.getElementById('stat-speed');
-      const statDamage = document.getElementById('stat-damage');
-      const statFireRate = document.getElementById('stat-firerate');
-      const statProjectiles = document.getElementById('stat-projectiles');
-      const statAllies = document.getElementById('stat-allies');
 
-      // Card Popup DOM selectors (Destiny parallel choices)
-      const divinationCardsContainer = document.getElementById('divination-cards-container');
 
+      // Card Popup DOM selectors (Destiny parallel choices) - Removed
       const reportTime = document.getElementById('report-time');
       const reportKills = document.getElementById('report-kills');
       const reportHighestRecord = document.getElementById('report-highest-record');
@@ -560,14 +669,14 @@
       // Highscore local storage getter/setter
       function loadHighScore() {
         const hs = localStorage.getItem('fate_high_kills_v2') || '0';
-        highestKillsRecordField.textContent = hs;
+        if (highestKillsRecordField) highestKillsRecordField.textContent = hs;
         return parseInt(hs, 10);
       }
       function saveHighScore(kills) {
         const currentHS = loadHighScore();
         if (kills > currentHS) {
           localStorage.setItem('fate_high_kills_v2', kills);
-          highestKillsRecordField.textContent = kills;
+          if (highestKillsRecordField) highestKillsRecordField.textContent = kills;
         }
       }
       loadHighScore();
@@ -577,7 +686,17 @@
 
       // =====================================================================
       // 3b. 核心卡牌矩阵 (CARD DICTIONARY) — 7 张战术手牌，各含白/黑牌变体
-      // =====================================================================
+      // ========== TIERED TAROT CARD DICTIONARY (Data Drive) ==========
+      const CELTIC_CROSS_READINGS = {
+        fool:     ["「当下之位：自由的脚步已经迈出...」", "「障碍位：飞翔需要先坠落。」"],
+        magician: ["「当下之位：万物在指尖汇聚。」", "「潜意识位：你已掌握咒语。」"],
+        emperor:  ["「根基位：铁壁铜墙正在铸造。」", "「环境位：权力带来代价。」"],
+        lovers:   ["「未来位：灵魂的共鸣正在靠近。」", "「障碍位：牵绊也是枷锁。」"],
+        chariot:  ["「当下位：战争号角已吹响。」", "「外部影响：力量需要方向。」"],
+        death:    ["「结果位：终结即是开始。」", "「潜意识位：旧日正在燃烧。」"],
+        moon:     ["「希望与恐惧位：暗夜藏匿真相。」", "「环境位：直觉比理性更准。」"]
+      };
+
       const CARD_DICTIONARY = [
         {
           id: 'fool', name: '【愚者】', roman: '0', tag: 'THE FOOL',
@@ -628,7 +747,11 @@
       //     每个 Effect 子类深度改写物理引擎与渲染管线参数
       // =====================================================================
       class CardEffect {
-        constructor(cardId, isBlack) { this.cardId = cardId; this.isBlack = isBlack; }
+        constructor(cardId, isBlack) { 
+          this.cardId = cardId; 
+          this.isBlack = isBlack; 
+          this.curseFrames = isBlack ? 15 * 60 : 0; // 15秒后严重反噬效果解除
+        }
         applyStats(p) { /* 由子类重写 */ }
       }
 
@@ -636,7 +759,7 @@
         applyStats(p) {
           if (this.isBlack) {
             p.speedMultiplier *= 2.5;       // +150% 移速
-            p.friction = 0.02;              // 【物理引擎】player.friction 归零 → 冰面惯性滑行
+            if (this.curseFrames > 0) p.friction = 0.02;              // 【物理引擎】player.friction 归零 → 冰面惯性滑行
           } else {
             p.speedMultiplier *= 1.15;      // +15% 移速
           }
@@ -649,9 +772,11 @@
           if (this.isBlack) {
             p.fireRateMultiplier *= 4.0;    // +400% 射速
             p.bulletFanCount = 3;           // 扇形弹幕
-            p.bulletSineWave = true;        // 正弦波漂移
-            p.useAutoAim = false;           // 注销自动索敌
-            p.bulletRangeMultiplier *= 0.5; // 射程减半
+            if (this.curseFrames > 0) {
+              p.bulletSineWave = true;        // 正弦波漂移
+              p.useAutoAim = false;           // 注销自动索敌
+              p.bulletRangeMultiplier *= 0.5; // 射程减半
+            }
           } else {
             p.fireRateMultiplier *= 1.2;    // +20% 射速
           }
@@ -664,7 +789,7 @@
           if (this.isBlack) {
             p.damageMultiplier *= 5.0;      // 伤害翻 5 倍
             p.bulletSizeMultiplier *= 4.0;  // 巨大实心球
-            p.bulletDrawAsBall = true;      // 【渲染管线】改为实心球渲染模式
+            if (this.curseFrames > 0) p.bulletDrawAsBall = true;      // 【渲染管线】改为实心球渲染模式
           } else {
             p.damageMultiplier *= 1.2;      // +20% 伤害
             p.bulletSizeMultiplier *= 1.2;  // +20% 体积
@@ -676,7 +801,7 @@
         applyStats(p) {
           p.loversCount++;
           if (this.isBlack) {
-            p.canShoot = false;             // 【核心】canShoot 变量锁死为 false
+            if (this.curseFrames > 0) p.canShoot = false;             // 【核心】canShoot 变量锁死为 false
           }
         }
       }
@@ -685,7 +810,7 @@
         applyStats(p) {
           if (this.isBlack) {
             p.bulletKnockback = 80;         // 【物理引擎】极强击退效果
-            p.forceWASDDirection = true;    // 【碰撞逻辑】重写坐标边界 → WASD 方向锁定射击
+            if (this.curseFrames > 0) p.forceWASDDirection = true;    // 【碰撞逻辑】重写坐标边界 → WASD 方向锁定射击
           } else {
             p.bulletSpeedMultiplier *= 1.3; // +30% 弹速
             p.bulletRangeMultiplier *= 1.3; // 射程加远
@@ -698,7 +823,7 @@
           if (this.isBlack) {
             p.deathExplosionChance = 1.0;   // 100% 触发大范围核爆
             p.deathExplosionScale = 3.0;    // 连环核爆范围 ×3
-            p.deathBlackActive = true;      // 【AI 导演】怪物生成频率与上限翻倍
+            if (this.curseFrames > 0) p.deathBlackActive = true;      // 【AI 导演】怪物生成频率与上限翻倍
           } else {
             p.deathExplosionChance = Math.min(1.0, p.deathExplosionChance + 0.15);
           }
@@ -710,7 +835,7 @@
           if (this.isBlack) {
             p.bulletHoming = true;          // 【弹道引擎】绝对追踪
             p.infinitePierce = true;        // 无限穿透
-            p.moonBlackActive = true;       // 【Canvas 遮罩图层】视野压缩渲染
+            if (this.curseFrames > 0) p.moonBlackActive = true;       // 【Canvas 遮罩图层】视野压缩渲染
           } else {
             p.pierceBonus += 1;             // 额外穿透 +1
           }
@@ -756,12 +881,12 @@
           for (const enemy of enemiesArray) {
             const dx = this.x - enemy.x;
             const dy = this.y - enemy.y;
-            const dist = Math.hypot(dx, dy);
-            if (dist < this.maxRadius * 1.5 && dist > 1) {
+            const distSq = (dx)*(dx) + (dy)*(dy);
+            if (distSq < (this.maxRadius * 1.5 && dist > 1)*(this.maxRadius * 1.5 && dist > 1)) {
               const force = this.pullStrength * (1 - dist / (this.maxRadius * 1.5));
               enemy.x += (dx / dist) * force;
               enemy.y += (dy / dist) * force;
-              if (dist < this.radius * 0.5) {
+              if (distSq < (this.radius * 0.5)*(this.radius * 0.5)) {
                 enemy.hp -= this.damage;
                 enemy.hitFlashDuration = 2;
               }
@@ -821,10 +946,21 @@
       let gameTimerSeconds = 0;
       let rawUpdateFrameCount = 0;
       let totalKillsCount = 0;
-      let currentKillTierCounter = 0; // Ticks up based on kills
-      let nextKillTierThreshold = 10;
+      let currentKillTierCounter = 0; // Legacy stats
       let activeTarotCount = 0;
       let activeDifficultyLevel = 1;
+
+      // ===== 人生阶段与经验机制 =====
+      let playerAge = 1;
+      let currentExp = 0;
+      let nextExpThreshold = 10;
+      let currentPhase = 1;
+      let bossDefeatedPhase1 = false;
+      let bossSpawnedPhase2 = false;
+      let bossDefeatedPhase2 = false;
+      let bossSpawnedPhase3 = false;
+      let bossDefeatedPhase3 = false;
+      let bossSpawnedPhase4 = false;
 
       // Card-Hand & Strategic Ultimate mechanics globals
       let playerHand = []; // Max 9 hand card entries
@@ -836,6 +972,14 @@
 
       // Entities pools
       let playerObj = null;
+      
+      // High-performance array element removal (O(1) Swap-and-Pop)
+      function fastRemove(arr, index) {
+        const last = arr.pop();
+        if (index < arr.length) {
+          arr[index] = last;
+        }
+      }
       let enemiesArray = [];
       let bulletsArray = [];
       let particlesArray = [];
@@ -844,6 +988,8 @@
       let shockwavesArray = [];
       let blackVorticesArray = [];
       let scribbleLinesCache = null;
+      let expOrbsArray = [];
+      let enemyBulletsArray = []; // 老年期精英怪弹幕
 
       // Last drawing state for pause backdrop continuity
       let isGamePausedForDivination = false;
@@ -976,8 +1122,8 @@
         update() {
           this.life--;
           enemiesArray.forEach(enemy => {
-            const dist = Math.hypot(enemy.x - this.x, enemy.y - this.y);
-            if (dist < (this.radius + enemy.radius)) {
+            const distSq = (enemy.x - this.x)*(enemy.x - this.x) + (enemy.y - this.y)*(enemy.y - this.y);
+            if (distSq < ((this.radius + enemy.radius))*((this.radius + enemy.radius))) {
               enemy.hp -= this.damage;
               enemy.hitFlashDuration = Math.max(enemy.hitFlashDuration, 1);
             }
@@ -1090,6 +1236,62 @@
              ctx.lineTo(0, this.size);
              ctx.stroke();
           }
+          ctx.restore();
+        }
+      }
+
+      // 经验球 (ExpOrb)
+      class ExpOrb {
+        constructor(x, y, amount) {
+          this.x = x;
+          this.y = y;
+          this.amount = amount;
+          this.radius = 4;
+          this.color = '#3b82f6'; // blue
+          this.vx = (Math.random() - 0.5) * 4;
+          this.vy = (Math.random() - 0.5) * 4;
+          this.attracting = false;
+        }
+        update() {
+          // Friction
+          this.vx *= 0.9;
+          this.vy *= 0.9;
+
+          // Magnetism to player
+          if (playerObj) {
+            const dx = playerObj.x - this.x;
+            const dy = playerObj.y - this.y;
+            const distSq = (dx)*(dx) + (dy)*(dy);
+            
+            // Pickup radius
+            if (distSq < (playerObj.radius + this.radius + 5)*(playerObj.radius + this.radius + 5)) {
+              return 'pickup'; // Signal to absorb
+            }
+            // Magnet pull range
+            if (distSq < (120 || this.attracting)*(120 || this.attracting)) {
+              this.attracting = true;
+              const pullSpeed = 4.5;
+              this.vx += (dx / dist) * pullSpeed * 0.2;
+              this.vy += (dy / dist) * pullSpeed * 0.2;
+            }
+          }
+          this.x += this.vx;
+          this.y += this.vy;
+          return 'alive';
+        }
+        draw() {
+          ctx.save();
+          ctx.fillStyle = this.color;
+          ctx.shadowColor = this.color;
+          ctx.shadowBlur = 8;
+          ctx.beginPath();
+          ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+          ctx.fill();
+          
+          ctx.fillStyle = '#ffffff';
+          ctx.beginPath();
+          ctx.arc(this.x - 1, this.y - 1, 1.5, 0, Math.PI * 2);
+          ctx.fill();
           ctx.restore();
         }
       }
@@ -1237,51 +1439,399 @@
         constructor(x, y, type) {
           this.x = x;
           this.y = y;
-          this.type = type; // creeper, behemoth, ripper, assassin
+          this.type = type;
           this.hitFlashDuration = 0; // flash white helper
-          this.aggroTarget = null;   // taunt target (an Ally unit or fallback to Player)
+          this.aggroTarget = null;   // taunt target
 
-          // Scale both speed and HP dynamically based on active difficulty level to prevent stagnation
-          const speedScaleMultiplier = 1 + (activeDifficultyLevel - 1) * 0.075; // 7.5% faster per level
-
-          if (type === 'creeper') {
-            this.radius = 11;
-            this.color = '#10b981'; // vibrant neon green
-            this.maxHp = 5 + activeDifficultyLevel * 1.5; // Scaled up (was 0.8)
-            this.speed = (1.6 + Math.random() * 0.35) * speedScaleMultiplier;
-            this.points = 10;
-          } else if (type === 'behemoth') {
-            this.radius = 20;
-            this.color = '#ef4444'; // deep hot crimson red
-            this.maxHp = 20 + activeDifficultyLevel * 5.0; // Scaled up (was 2.5)
-            this.speed = 0.85 * speedScaleMultiplier;
-            this.points = 30;
-          } else if (type === 'assassin') {
-            this.radius = 6;
-            this.color = '#fbbf24'; // hot high-contrast glowing amber
-            this.maxHp = 1 + Math.floor(activeDifficultyLevel / 2.5); // Scales past 1 HP under higher difficulties
-            this.speed = 4.2 * speedScaleMultiplier;
-            this.points = 15;
-          } else if (type === 'punisher') {
-            this.radius = 16;
-            this.color = '#ef4444'; // fiery screaming crimson blood red
-            this.maxHp = 100 + activeDifficultyLevel * 20; // heavy health scaling (was 10)
-            this.speed = 4.5 * speedScaleMultiplier;
-            this.points = 100;
-          } else { // ripper
-            this.radius = 13;
-            this.color = '#a855f7'; // purple neon
-            this.maxHp = 10 + activeDifficultyLevel * 3.2; // Scaled up (was 1.5)
-            this.speed = 1.25 * speedScaleMultiplier;
-            this.points = 20;
-            // Zig-zag math timers
-            this.zigTimer = Math.random() * 100;
+          // 阶段内难度上限：7岁前保持原曲线，7岁后速度增长放缓
+          let speedScaleMultiplier;
+          if (currentPhase === 1 && activeDifficultyLevel <= 6) {
+            speedScaleMultiplier = 1 + (activeDifficultyLevel - 1) * 0.04; // 原曲线
+          } else if (currentPhase === 1) {
+            speedScaleMultiplier = Math.min(1.25, 1.20 + (activeDifficultyLevel - 6) * 0.01); // 7岁后缓增，封顶1.25
+          } else {
+            speedScaleMultiplier = Math.min(1.6, 1 + (activeDifficultyLevel - 1) * 0.03);
           }
+          
+          // 设置新版文本框怪物属性
+          this.color = '#1c1917';
+          this.points = 10;
+          this.width = 40;
+          this.height = 20;
+
+          if (type === 'loner') {
+            this.text = '独处';
+            this.maxHp = 4 + activeDifficultyLevel * 0.8;
+            this.speed = (1.2 + Math.random() * 0.3) * speedScaleMultiplier;
+            this.width = 30; this.height = 30; // 孤立的小方块
+          } else if (type === 'scold') {
+            this.text = '训斥';
+            this.maxHp = 8 + activeDifficultyLevel * 1.0;
+            this.speed = 2.0 * speedScaleMultiplier;
+            this.points = 15;
+            this.width = 46; this.height = 28;
+          } else if (type === 'homework') {
+            this.text = '作业';
+            this.maxHp = 6 + activeDifficultyLevel * 0.9;
+            this.speed = 1.5 * speedScaleMultiplier;
+            this.width = 54; this.height = 36; // 比较敦实
+          } else if (type === 'exam') {
+            this.text = '考试';
+            this.maxHp = 25 + activeDifficultyLevel * 2.0;
+            this.speed = 0.9 * speedScaleMultiplier;
+            this.points = 30;
+            this.width = 70; this.height = 50; // 巨大厚重
+          } else if (type === 'mistake') {
+            this.text = '错题';
+            this.maxHp = 5 + activeDifficultyLevel * 0.6;
+            this.speed = 1.8 * speedScaleMultiplier;
+            this.width = 36; this.height = 36;
+          } else if (type === 'imbalance') {
+            this.text = '偏科';
+            this.maxHp = 10 + activeDifficultyLevel * 1.2;
+            this.speed = 1.4 * speedScaleMultiplier;
+            this.width = 24; this.height = 56; // 极端长条
+          } else if (type === 'bully') { // 冲刺
+            this.text = '霸凌';
+            this.maxHp = 15 + activeDifficultyLevel * 1.5;
+            this.speed = 3.5 * speedScaleMultiplier;
+            this.points = 25;
+            this.width = 50; this.height = 50; // 压迫感方块
+          } else if (type === 'nagging') { // 移动轨迹不规则
+            this.text = '唠叨';
+            this.maxHp = 3 + activeDifficultyLevel * 0.5;
+            this.speed = 2.2 * speedScaleMultiplier;
+            this.zigTimer = Math.random() * 100;
+            this.width = 66; this.height = 22; // 极扁长
+          } else if (type === 'cramming') { // 死亡分裂
+            this.text = '补课';
+            this.maxHp = 18 + activeDifficultyLevel * 2.0;
+            this.speed = 1.1 * speedScaleMultiplier;
+            this.points = 20;
+            this.width = 44; this.height = 44; // 饱满
+          } else if (type === 'control') {
+            this.text = '管束';
+            this.maxHp = 12 + activeDifficultyLevel * 1.5;
+            this.speed = 1.0 * speedScaleMultiplier;
+            this.width = 80; this.height = 24; // 像一堵墙
+          } else if (type === 'academic') { // Boss 1
+            this.text = '【 学 业 】';
+            this.maxHp = 1000 + activeDifficultyLevel * 100;
+            this.speed = 0.4 * speedScaleMultiplier;
+            this.points = 500;
+            this.width = 120;
+            this.height = 40;
+            this.bossTimer = 0;
+            this.color = '#ef4444';
+          } else if (type === 'academic_phase2') { // Boss 2
+            this.text = '【 学 业 】';
+            this.maxHp = 4000 + activeDifficultyLevel * 300;
+            this.speed = 0.5 * speedScaleMultiplier;
+            this.points = 1000;
+            this.width = 120;
+            this.height = 40;
+            this.bossTimer = 0;
+            this.color = '#ef4444';
+          } else if (type === 'career') { // Boss 2
+            this.text = '【 事 业 】';
+            this.maxHp = 5000 + activeDifficultyLevel * 400;
+            this.speed = 0.6 * speedScaleMultiplier;
+            this.points = 1000;
+            this.width = 120;
+            this.height = 40;
+            this.bossTimer = 0;
+            this.color = '#eab308';
+          } else if (type === 'anxiety') { // 精英怪
+            this.text = '焦虑';
+            this.maxHp = 40 + activeDifficultyLevel * 2.0;
+            this.speed = 2.5 * speedScaleMultiplier;
+            this.points = 100;
+            this.color = '#a855f7'; // 紫色
+            this.width = 45; this.height = 45;
+          } else if (type === 'depression') { // 精英怪
+            this.text = '抑郁';
+            this.maxHp = 80 + activeDifficultyLevel * 4.0;
+            this.speed = 1.2 * speedScaleMultiplier;
+            this.points = 150;
+            this.color = '#3b82f6'; // 蓝色
+            this.width = 60; this.height = 60;
+          } else if (type === 'love_loss') {
+            this.text = '失恋';
+            this.maxHp = 10 + activeDifficultyLevel * 1.0;
+            this.speed = 1.6 * speedScaleMultiplier;
+            this.width = 40; this.height = 40;
+          } else if (type === 'social_phobia') {
+            this.text = '社恐';
+            this.maxHp = 6 + activeDifficultyLevel * 0.8;
+            this.speed = (0.8 + Math.random() * 0.4) * speedScaleMultiplier;
+            this.width = 30; this.height = 30;
+          } else if (type === 'cert') {
+            this.text = '考证';
+            this.maxHp = 20 + activeDifficultyLevel * 1.5;
+            this.speed = 1.0 * speedScaleMultiplier;
+            this.width = 60; this.height = 40;
+          } else if (type === 'confusion') {
+            this.text = '迷茫';
+            this.maxHp = 8 + activeDifficultyLevel * 1.0;
+            this.speed = 1.2 * speedScaleMultiplier;
+            this.zigTimer = Math.random() * 100;
+            this.width = 44; this.height = 24;
+          } else if (type === 'fail') {
+            this.text = '挂科';
+            this.maxHp = 18 + activeDifficultyLevel * 1.8;
+            this.speed = 2.0 * speedScaleMultiplier;
+            this.points = 20;
+            this.width = 50; this.height = 50;
+          } else if (type === 'thesis') {
+            this.text = '论文';
+            this.maxHp = 30 + activeDifficultyLevel * 2.0;
+            this.speed = 0.7 * speedScaleMultiplier;
+            this.points = 25;
+            this.width = 80; this.height = 60;
+          } else if (type === 'prep') {
+            this.text = '备考';
+            this.maxHp = 12 + activeDifficultyLevel * 1.2;
+            this.speed = 1.3 * speedScaleMultiplier;
+            this.width = 46; this.height = 36;
+          } else if (type === 'gpa') {
+            this.text = '绩点';
+            this.maxHp = 15 + activeDifficultyLevel * 1.5;
+            this.speed = 1.5 * speedScaleMultiplier;
+            this.width = 40; this.height = 40;
+          } else if (type === 'ldt') {
+            this.text = '异地';
+            this.maxHp = 12 + activeDifficultyLevel * 1.0;
+            this.speed = 1.6 * speedScaleMultiplier;
+            this.width = 66; this.height = 22;
+          } else if (type === 'push_marriage') {
+            this.text = '催婚';
+            this.maxHp = 16 + activeDifficultyLevel * 1.6;
+            this.speed = 1.8 * speedScaleMultiplier;
+            this.width = 48; this.height = 48;
+          } else if (type === 'blind_date') {
+            this.text = '相亲';
+            this.maxHp = 14 + activeDifficultyLevel * 1.2;
+            this.speed = 1.7 * speedScaleMultiplier;
+            this.width = 50; this.height = 30;
+          } else if (type === 'ddl') {
+            this.text = 'DDL';
+            this.maxHp = 8 + activeDifficultyLevel * 1.0;
+            this.speed = 3.8 * speedScaleMultiplier;
+            this.points = 20;
+            this.width = 36; this.height = 36;
+          // ===== 中年期怪物 (Phase 3: 35-55岁) =====
+          } else if (type === 'overtime') {
+            this.text = '加班';
+            this.maxHp = 20 + activeDifficultyLevel * 1.5;
+            this.speed = 1.8 * speedScaleMultiplier;
+            this.width = 50; this.height = 30;
+          } else if (type === 'exploit') {
+            this.text = '压榨';
+            this.maxHp = 25 + activeDifficultyLevel * 2.0;
+            this.speed = 1.4 * speedScaleMultiplier;
+            this.width = 55; this.height = 35;
+          } else if (type === 'blame') {
+            this.text = '甩锅';
+            this.maxHp = 12 + activeDifficultyLevel * 1.0;
+            this.speed = 2.8 * speedScaleMultiplier;
+            this.points = 15;
+            this.width = 40; this.height = 40;
+          } else if (type === 'low_pay') {
+            this.text = '低薪';
+            this.maxHp = 10 + activeDifficultyLevel * 0.8;
+            this.speed = 1.5 * speedScaleMultiplier;
+            this.width = 42; this.height = 28;
+          } else if (type === 'nitpick') {
+            this.text = '刁难';
+            this.maxHp = 18 + activeDifficultyLevel * 1.5;
+            this.speed = 2.0 * speedScaleMultiplier;
+            this.width = 44; this.height = 32;
+          } else if (type === 'kpi') {
+            this.text = '业绩';
+            this.maxHp = 22 + activeDifficultyLevel * 1.8;
+            this.speed = 1.6 * speedScaleMultiplier;
+            this.width = 50; this.height = 40;
+          } else if (type === 'push_marry') {
+            this.text = '催婚';
+            this.maxHp = 16 + activeDifficultyLevel * 1.2;
+            this.speed = 1.8 * speedScaleMultiplier;
+            this.width = 48; this.height = 48;
+          } else if (type === 'blind_date2') {
+            this.text = '相亲';
+            this.maxHp = 14 + activeDifficultyLevel * 1.0;
+            this.speed = 1.7 * speedScaleMultiplier;
+            this.width = 50; this.height = 30;
+          } else if (type === 'car_loan') {
+            this.text = '车贷';
+            this.maxHp = 30 + activeDifficultyLevel * 2.5;
+            this.speed = 1.0 * speedScaleMultiplier;
+            this.points = 25;
+            this.width = 66; this.height = 36;
+          } else if (type === 'mortgage') {
+            this.text = '房贷';
+            this.maxHp = 40 + activeDifficultyLevel * 3.0;
+            this.speed = 0.8 * speedScaleMultiplier;
+            this.points = 30;
+            this.width = 80; this.height = 44;
+          } else if (type === 'layoff') {
+            this.text = '失业';
+            this.maxHp = 15 + activeDifficultyLevel * 1.2;
+            this.speed = 2.5 * speedScaleMultiplier;
+            this.points = 20;
+            this.width = 50; this.height = 50;
+          } else if (type === 'social') {
+            this.text = '应酬';
+            this.maxHp = 12 + activeDifficultyLevel * 1.0;
+            this.speed = 1.9 * speedScaleMultiplier;
+            this.width = 46; this.height = 30;
+          } else if (type === 'elderly') {
+            this.text = '养老';
+            this.maxHp = 35 + activeDifficultyLevel * 2.5;
+            this.speed = 0.7 * speedScaleMultiplier;
+            this.points = 25;
+            this.width = 60; this.height = 50;
+          } else if (type === 'insomnia') {
+            this.text = '失眠';
+            this.maxHp = 8 + activeDifficultyLevel * 0.8;
+            this.speed = 2.2 * speedScaleMultiplier;
+            this.zigTimer = Math.random() * 100;
+            this.width = 38; this.height = 38;
+          } else if (type === 'weight') {
+            this.text = '发胖';
+            this.maxHp = 28 + activeDifficultyLevel * 2.0;
+            this.speed = 0.9 * speedScaleMultiplier;
+            this.width = 60; this.height = 60;
+          } else if (type === 'hairloss') {
+            this.text = '脱发';
+            this.maxHp = 6 + activeDifficultyLevel * 0.6;
+            this.speed = 3.0 * speedScaleMultiplier;
+            this.points = 15;
+            this.width = 34; this.height = 22;
+          // ===== 中年Boss：重压 =====
+          } else if (type === 'burden') {
+            this.text = '【 重 压 】';
+            this.maxHp = 8000 + activeDifficultyLevel * 500;
+            this.speed = 0.5 * speedScaleMultiplier;
+            this.points = 2000;
+            this.width = 150;
+            this.height = 55;
+            this.bossTimer = 0;
+            this.bossPhase = 'bearing'; // bearing → rage → exhaust
+            this.bossPhaseTimer = 0;
+            this.summonCount = 3; // 每次召唤数量，递增
+            this.color = '#dc2626';
+          // ===== 老年期怪物 (Phase 4: 55+岁) =====
+          } else if (type === 'lonely') {
+            this.text = '孤独';     // 孤独：缓慢但高血量，沉默巨块
+            this.maxHp = 30 + activeDifficultyLevel * 2.0;
+            this.speed = 0.6 * speedScaleMultiplier;
+            this.width = 55; this.height = 55;
+          } else if (type === 'forgetful') {
+            this.text = '健忘';     // 健忘：随机变向蛇行
+            this.maxHp = 12 + activeDifficultyLevel * 1.0;
+            this.speed = 1.4 * speedScaleMultiplier;
+            this.zigTimer = Math.random() * 100;
+            this.width = 42; this.height = 42;
+          } else if (type === 'frail') {
+            this.text = '衰弱';     // 衰弱：脆皮小型
+            this.maxHp = 6 + activeDifficultyLevel * 0.5;
+            this.speed = 1.0 * speedScaleMultiplier;
+            this.width = 32; this.height = 24;
+          } else if (type === 'insomnia2') {
+            this.text = '失眠';     // 失眠：快速飘忽
+            this.maxHp = 10 + activeDifficultyLevel * 0.8;
+            this.speed = 2.0 * speedScaleMultiplier;
+            this.zigTimer = Math.random() * 100;
+            this.width = 38; this.height = 38;
+          } else if (type === 'deaf') {
+            this.text = '耳聋';     // 耳聋：厚实缓慢
+            this.maxHp = 25 + activeDifficultyLevel * 1.8;
+            this.speed = 0.7 * speedScaleMultiplier;
+            this.width = 50; this.height = 36;
+          } else if (type === 'blurry') {
+            this.text = '眼花';     // 眼花：中等蛇行
+            this.maxHp = 15 + activeDifficultyLevel * 1.2;
+            this.speed = 1.2 * speedScaleMultiplier;
+            this.zigTimer = Math.random() * 100;
+            this.width = 44; this.height = 34;
+          // ===== 老年Boss：病痛 =====
+          } else if (type === 'sickness') {
+            this.text = '【 病 痛 】';
+            this.maxHp = 12000 + activeDifficultyLevel * 600;
+            this.speed = 0.35 * speedScaleMultiplier;
+            this.points = 3000;
+            this.width = 160;
+            this.height = 60;
+            this.bossTimer = 0;
+            this.summonCount = 0;
+            this.color = '#7c3aed';
+          // ===== 老年精英怪：疾病（具有弹幕射击能力） =====
+          } else if (type === 'diabetes') {
+            this.text = '糖尿病';
+            this.maxHp = 80 + activeDifficultyLevel * 5;
+            this.speed = 0.9 * speedScaleMultiplier;
+            this.points = 40;
+            this.width = 70; this.height = 35;
+            this.color = '#b45309';
+            this.shootTimer = 0;
+            this.shootInterval = 90; // 1.5 秒射一次
+          } else if (type === 'hypertension') {
+            this.text = '高血压';
+            this.maxHp = 90 + activeDifficultyLevel * 5;
+            this.speed = 1.1 * speedScaleMultiplier;
+            this.points = 45;
+            this.width = 66; this.height = 35;
+            this.color = '#dc2626';
+            this.shootTimer = 0;
+            this.shootInterval = 75;
+          } else if (type === 'arthritis') {
+            this.text = '关节炎';
+            this.maxHp = 60 + activeDifficultyLevel * 4;
+            this.speed = 0.7 * speedScaleMultiplier;
+            this.points = 35;
+            this.width = 65; this.height = 32;
+            this.color = '#a16207';
+            this.shootTimer = 0;
+            this.shootInterval = 120;
+          } else if (type === 'gallstone') {
+            this.text = '胆结石';
+            this.maxHp = 70 + activeDifficultyLevel * 4;
+            this.speed = 0.8 * speedScaleMultiplier;
+            this.points = 38;
+            this.width = 62; this.height = 38;
+            this.color = '#65a30d';
+            this.shootTimer = 0;
+            this.shootInterval = 100;
+          } else if (type === 'anxiety_disorder') {
+            this.text = '焦虑症';
+            this.maxHp = 50 + activeDifficultyLevel * 3;
+            this.speed = 1.5 * speedScaleMultiplier;
+            this.points = 42;
+            this.width = 64; this.height = 34;
+            this.color = '#a855f7';
+            this.shootTimer = 0;
+            this.shootInterval = 60; // 射击最频繁
+          } else if (type === 'cancer') {
+            this.text = '癌症';
+            this.maxHp = 150 + activeDifficultyLevel * 8;
+            this.speed = 0.5 * speedScaleMultiplier;
+            this.points = 80;
+            this.width = 80; this.height = 45;
+            this.color = '#1c1917';
+            this.shootTimer = 0;
+            this.shootInterval = 50; // 高频射击
+          } else { // Fallback
+            this.text = '未知';
+            this.maxHp = 5;
+            this.speed = 1.5;
+          }
+          
+          this.radius = Math.max(this.width, this.height) / 2; // For collision approx
+          
           this.hp = this.maxHp;
         }
 
         update(playerX, playerY) {
-          // Resolve actual tracking coordinates based on custom taunting active allies targeting
           let targetX = playerX;
           let targetY = playerY;
 
@@ -1289,26 +1839,24 @@
             targetX = this.aggroTarget.x;
             targetY = this.aggroTarget.y;
           } else {
-            this.aggroTarget = null; // reset fallback when companion dies
+            this.aggroTarget = null; 
           }
 
           const dx = targetX - this.x;
           const dy = targetY - this.y;
           const d = Math.hypot(dx, dy);
 
-          // Emperor Slowness aura check: speed drops by 40%
           let activeSpeed = this.speed;
           if (playerObj && playerObj.emperorCount > 0) {
             const auraRadius = 100 + 40 * (playerObj.emperorCount - 1);
             if (d < auraRadius) {
-              activeSpeed = this.speed * 0.60; // 40% reduction
+              activeSpeed = this.speed * 0.60;
             }
           }
 
-          if (this.type === 'ripper') {
+          if (this.type === 'nagging') {
             this.zigTimer += 0.08;
             const headingAngle = Math.atan2(dy, dx);
-            // Apply a minor orthogonal oscillation to simulate rippling tear movement
             const steerAngle = headingAngle + Math.sin(this.zigTimer) * 0.45;
             this.x += Math.cos(steerAngle) * activeSpeed;
             this.y += Math.sin(steerAngle) * activeSpeed;
@@ -1319,6 +1867,123 @@
             }
           }
 
+          if (this.type === 'academic') {
+             this.bossTimer++;
+             if (this.bossTimer >= 300) {
+                this.bossTimer = 0;
+                const adds = ['homework', 'exam', 'mistake', 'imbalance'];
+                for(let i = 0; i < 4; i++) {
+                   const aType = adds[Math.floor(Math.random() * adds.length)];
+                   enemiesArray.push(new Enemy(this.x + (Math.random()-0.5)*100, this.y + (Math.random()-0.5)*100, aType));
+                }
+                floatsArray.push(new FloatingText(this.x, this.y - 30, `📜 学业重压！`, '#ef4444'));
+             }
+          }
+
+          // 青年期Boss：召唤精英怪
+          if (this.type === 'academic_phase2' || this.type === 'career') {
+             this.bossTimer++;
+             if (this.bossTimer >= 240) {
+                this.bossTimer = 0;
+                const elites = ['anxiety', 'depression'];
+                const eType = elites[Math.floor(Math.random() * elites.length)];
+                enemiesArray.push(new Enemy(this.x + (Math.random()-0.5)*120, this.y + (Math.random()-0.5)*120, eType));
+                floatsArray.push(new FloatingText(this.x, this.y - 30, `😖 精神内耗蓬勃！`, this.color));
+             }
+          }
+
+          // 中年Boss：重压 — 三阶段机制
+          if (this.type === 'burden') {
+            this.bossTimer++;
+            this.bossPhaseTimer++;
+            const hpRatio = this.hp / this.maxHp;
+
+            if (this.bossPhase === 'bearing') {
+              // 承压期：定时召唤中年烦恼 + 精英怪
+              if (this.bossTimer >= 300) {
+                this.bossTimer = 0;
+                this.summonCount = Math.min(6, this.summonCount + 1);
+                const midAdds = ['overtime', 'mortgage', 'car_loan', 'kpi', 'layoff', 'insomnia'];
+                for (let i = 0; i < this.summonCount; i++) {
+                  const aType = midAdds[Math.floor(Math.random() * midAdds.length)];
+                  enemiesArray.push(new Enemy(this.x + (Math.random()-0.5)*200, this.y + (Math.random()-0.5)*200, aType));
+                }
+                // 每两次召唤后追加一只精英怪
+                if (this.summonCount % 2 === 0) {
+                  const eType = Math.random() < 0.5 ? 'anxiety' : 'depression';
+                  enemiesArray.push(new Enemy(this.x, this.y - 60, eType));
+                }
+                floatsArray.push(new FloatingText(this.x, this.y - 40, `⚔️ 负载堆积！(${this.summonCount}件)`, '#dc2626'));
+                screenShakeIntensity = Math.min(25, screenShakeIntensity + 12);
+              }
+              // HP低于20%触发暴走
+              if (hpRatio <= 0.20) {
+                this.bossPhase = 'rage';
+                this.bossPhaseTimer = 0;
+                this.speed = 4.5; // 暴走速度
+                floatsArray.push(new FloatingText(this.x, this.y - 50, `💢 重压崩溃暴走！`, '#ef4444'));
+                screenShakeIntensity = 40;
+                playExplosionSound(true);
+              }
+            } else if (this.bossPhase === 'rage') {
+              // 暴走期：10秒持续屏振 + 高速移动
+              screenShakeIntensity = Math.max(15, screenShakeIntensity);
+              if (this.bossPhaseTimer >= 600) { // 10秒
+                this.bossPhase = 'exhaust';
+                this.bossPhaseTimer = 0;
+                this.speed = 0.15; // 虚脱期极慢
+                floatsArray.push(new FloatingText(this.x, this.y - 50, `💤 重压虚脱！窗口期！`, '#10b981'));
+              }
+            } else if (this.bossPhase === 'exhaust') {
+              // 虚脱期：10秒极慢，承受3倍伤害
+              if (this.bossPhaseTimer >= 600) { // 10秒后回到承压
+                this.bossPhase = 'bearing';
+                this.bossPhaseTimer = 0;
+                this.speed = 0.5;
+                floatsArray.push(new FloatingText(this.x, this.y - 50, `⚠️ 重压再次承载！`, '#dc2626'));
+              }
+            }
+          }
+
+          // 老年Boss：病痛 — 间歇召唤疾病精英怪
+          if (this.type === 'sickness') {
+            this.bossTimer++;
+            if (this.bossTimer >= 360) { // 每6秒
+              this.bossTimer = 0;
+              this.summonCount++;
+              const diseases = ['diabetes', 'hypertension', 'arthritis', 'gallstone', 'anxiety_disorder', 'cancer'];
+              // 每次召唤1-2只，后期更多
+              const count = this.summonCount <= 3 ? 1 : 2;
+              for (let i = 0; i < count; i++) {
+                const dType = diseases[Math.floor(Math.random() * diseases.length)];
+                enemiesArray.push(new Enemy(this.x + (Math.random()-0.5)*180, this.y + (Math.random()-0.5)*180, dType));
+              }
+              floatsArray.push(new FloatingText(this.x, this.y - 40, `🦠 病痛扩散！疾病滋生！`, '#7c3aed'));
+              screenShakeIntensity = Math.min(20, screenShakeIntensity + 8);
+            }
+          }
+
+          // 疾病精英怪：弹幕射击（低伤害，鼓励玩家优先清理）
+          const diseaseTypes = ['diabetes', 'hypertension', 'arthritis', 'gallstone', 'anxiety_disorder', 'cancer'];
+          if (diseaseTypes.includes(this.type) && this.shootTimer !== undefined && playerObj) {
+            this.shootTimer++;
+            if (this.shootTimer >= this.shootInterval) {
+              this.shootTimer = 0;
+              const angle = Math.atan2(playerObj.y - this.y, playerObj.x - this.x);
+              const speed = 2.5;
+              enemyBulletsArray.push({
+                x: this.x,
+                y: this.y,
+                vx: Math.cos(angle) * speed,
+                vy: Math.sin(angle) * speed,
+                size: 4,
+                color: this.color,
+                life: 240, // 4秒后消失
+                text: this.text.charAt(0) // 取第一个字显示
+              });
+            }
+          }
+
           if (this.hitFlashDuration > 0) {
             this.hitFlashDuration--;
           }
@@ -1326,151 +1991,41 @@
 
         draw() {
           ctx.save();
-          ctx.shadowBlur = 0; // Completely disable colorful glow effects
+          ctx.shadowBlur = 0;
           
-          // Determine chalk color states (white outline, black chalkboard fill)
           const flashWhite = this.hitFlashDuration > 0;
-          ctx.strokeStyle = '#1c1917';
-          ctx.fillStyle = flashWhite ? '#1c1917' : '#ffffff';
-          ctx.lineWidth = 3.5; // Nice thick bold hand-drawn strokes
+          ctx.strokeStyle = this.color;
+          ctx.fillStyle = flashWhite ? this.color : '#ffffff';
+          const isBossType = ['academic', 'academic_phase2', 'career', 'burden', 'sickness'].includes(this.type);
+          ctx.lineWidth = isBossType ? 4 : 2;
 
-          // 1. Creeper ("Caleb") - Cute happy square creature
-          if (this.type === 'creeper') {
-            ctx.beginPath();
-            ctx.rect(this.x - this.radius, this.y - this.radius, this.radius * 2, this.radius * 2);
-            ctx.fill();
-            ctx.stroke();
+          ctx.beginPath();
+          ctx.rect(this.x - this.width/2, this.y - this.height/2, this.width, this.height);
+          ctx.fill();
+          ctx.stroke();
 
-            if (!flashWhite) {
-              // Cute face drawing: happy eyes and curved smile
-              ctx.strokeStyle = '#1c1917';
-              ctx.lineWidth = 2;
-              ctx.fillStyle = '#1c1917';
-              // Left eye
-              ctx.beginPath();
-              ctx.arc(this.x - 3, this.y - 2, 1.8, 0, Math.PI * 2);
-              ctx.fill();
-              // Right eye
-              ctx.beginPath();
-              ctx.arc(this.x + 3, this.y - 2, 1.8, 0, Math.PI * 2);
-              ctx.fill();
-              // Adorable smiley mouth
-              ctx.beginPath();
-              ctx.arc(this.x, this.y + 1, 2.5, 0, Math.PI);
-              ctx.stroke();
-            }
-          } 
-          // 2. Behemoth ("Bob") - Giant blob with round cute closed eyes
-          else if (this.type === 'behemoth') {
-            ctx.beginPath();
-            const r = this.radius;
-            // Draw a cute hand-sketched circle/bloated oval
-            ctx.arc(this.x, this.y, r, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.stroke();
-
-            if (!flashWhite) {
-              ctx.strokeStyle = '#1c1917';
-              ctx.lineWidth = 2;
-              ctx.fillStyle = '#1c1917';
-              // Draw closed cute eyelashes: ^^
-              ctx.beginPath();
-              ctx.arc(this.x - 5, this.y - 2, 3, Math.PI, 0); ctx.stroke();
-              ctx.beginPath();
-              ctx.arc(this.x + 5, this.y - 2, 3, Math.PI, 0); ctx.stroke();
-              // Open mouth: o
-              ctx.beginPath();
-              ctx.arc(this.x, this.y + 4, 2, 0, Math.PI * 2);
-              ctx.stroke();
-            }
-          } 
-          // 3. Assassin ("Ally-S") - Fast diamond with funny curious eyes
-          else if (this.type === 'assassin') {
-            ctx.beginPath();
-            ctx.moveTo(this.x, this.y - this.radius - 3);
-            ctx.lineTo(this.x + this.radius + 3, this.y);
-            ctx.lineTo(this.x, this.y + this.radius + 3);
-            ctx.lineTo(this.x - this.radius - 3, this.y);
-            ctx.closePath();
-            ctx.fill();
-            ctx.stroke();
-
-            if (!flashWhite) {
-              ctx.strokeStyle = '#1c1917';
-              ctx.lineWidth = 1.8;
-              // Spiral / cute vertical eyes list: @_@
-              ctx.beginPath();
-              ctx.arc(this.x - 2.5, this.y - 1, 1.2, 0, Math.PI * 2);
-              ctx.stroke();
-              ctx.beginPath();
-              ctx.arc(this.x + 2.5, this.y - 1, 1.2, 0, Math.PI * 2);
-              ctx.stroke();
-              // Silly flat line mouth
-              ctx.beginPath();
-              ctx.moveTo(this.x - 2, this.y + 2);
-              ctx.lineTo(this.x + 2, this.y + 2);
-              ctx.stroke();
-            }
-          } 
-          // 4. Punisher ("Patches") - Angry rotating spiked star wheel
-          else if (this.type === 'punisher') {
-            ctx.save();
-            ctx.translate(this.x, this.y);
-            const timePhase = (rawUpdateFrameCount * 0.05);
-            ctx.rotate(timePhase);
-            ctx.beginPath();
-            const teeth = 10;
-            const rOuter = this.radius + 5;
-            const rInner = this.radius - 1;
-            for (let teethIdx = 0; teethIdx < teeth; teethIdx++) {
-              const a = (teethIdx / teeth) * Math.PI * 2;
-              const nextA = ((teethIdx + 0.5) / teeth) * Math.PI * 2;
-              ctx.lineTo(Math.cos(a) * rOuter, Math.sin(a) * rOuter);
-              ctx.lineTo(Math.cos(nextA) * rInner, Math.sin(nextA) * rInner);
-            }
-            ctx.closePath();
-            ctx.fill();
-            ctx.stroke();
-            ctx.restore();
-
-            if (!flashWhite) {
-              ctx.strokeStyle = '#1c1917';
-              ctx.lineWidth = 2;
-              // Angry eyes: > <
-              ctx.beginPath();
-              ctx.moveTo(this.x - 5, this.y - 4); ctx.lineTo(this.x - 2, this.y - 2);
-              ctx.moveTo(this.x - 5, this.y - 1); ctx.lineTo(this.x - 2, this.y - 3);
-              ctx.moveTo(this.x + 5, this.y - 4); ctx.lineTo(this.x + 2, this.y - 2);
-              ctx.moveTo(this.x + 5, this.y - 1); ctx.lineTo(this.x + 2, this.y - 3);
-              ctx.stroke();
-              // Grpy mouth: •__•
-              ctx.beginPath();
-              ctx.moveTo(this.x - 3, this.y + 2);
-              ctx.quadraticCurveTo(this.x, this.y, this.x + 3, this.y + 2);
-              ctx.stroke();
-            }
-          } 
-          // 5. Ripper ("Red") - Triangular zig-zag crawler
-          else {
-            ctx.beginPath();
-            const headAngle = Math.atan2(playerObj ? playerObj.y - this.y : 0, playerObj ? playerObj.x - this.x : 0);
-            ctx.moveTo(this.x + Math.cos(headAngle) * this.radius * 1.4, this.y + Math.sin(headAngle) * this.radius * 1.4);
-            ctx.lineTo(this.x + Math.cos(headAngle + 2.3) * this.radius, this.y + Math.sin(headAngle + 2.3) * this.radius);
-            ctx.lineTo(this.x + Math.cos(headAngle - 2.3) * this.radius, this.y + Math.sin(headAngle - 2.3) * this.radius);
-            ctx.closePath();
-            ctx.fill();
-            ctx.stroke();
-
-            if (!flashWhite) {
-              ctx.strokeStyle = '#1c1917';
-              ctx.lineWidth = 2;
-              // Two wide eyes: O_O
-              ctx.beginPath();
-              ctx.arc(this.x - Math.sin(headAngle) * 3, this.y + Math.cos(headAngle) * 3, 1.5, 0, Math.PI * 2);
-              ctx.stroke();
-              ctx.beginPath();
-              ctx.arc(this.x + Math.sin(headAngle) * 3, this.y - Math.cos(headAngle) * 3, 1.5, 0, Math.PI * 2);
-              ctx.stroke();
+          if (!flashWhite) {
+            ctx.fillStyle = this.color;
+            ctx.font = isBossType ? "bold 20px 'Courier Prime', monospace" : "bold 14px 'Courier Prime', monospace";
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(this.text, this.x, this.y);
+          }
+          
+          if (isBossType) {
+            // Boss HP Bar
+            const hpPct = this.hp / this.maxHp;
+            ctx.fillStyle = this.type === 'burden' && this.bossPhase === 'exhaust' ? '#10b981' : '#ef4444';
+            ctx.fillRect(this.x - this.width/2, this.y - this.height/2 - 10, this.width * hpPct, 4);
+            // 虚脱期闪烁标记
+            if (this.type === 'burden' && this.bossPhase === 'exhaust') {
+              ctx.fillStyle = '#10b981';
+              ctx.font = "bold 10px 'Courier Prime', monospace";
+              ctx.fillText('▼ 虚脱中 ▼', this.x, this.y - this.height/2 - 16);
+            } else if (this.type === 'burden' && this.bossPhase === 'rage') {
+              ctx.fillStyle = '#ef4444';
+              ctx.font = "bold 10px 'Courier Prime', monospace";
+              ctx.fillText('▲ 暴走中 ▲', this.x, this.y - this.height/2 - 16);
             }
           }
 
@@ -1659,6 +2214,7 @@
           this.maxHp = 3;
           this.hp = 3;
           this.ultimateInvincibleFrames = 0;
+          this.slowDebuffFrames = 0;
 
           // ===== 物理引擎属性 (Physics Engine) =====
           this.velocityX = 0;
@@ -1740,6 +2296,7 @@
 
         getSpeed() {
           let spd = this.baseSpeed * this.speedMultiplier * this.permanentSpeedMod;
+          if (this.slowDebuffFrames > 0) spd *= 0.4; // 减速状态
           return Math.max(0.6, spd);
         }
 
@@ -1797,7 +2354,7 @@
 
             // Trail particle puffs
             if (rawUpdateFrameCount % 4 === 0) {
-              const particleColor = '#06b6d4';
+              const particleColor = this.slowDebuffFrames > 0 ? '#a855f7' : '#06b6d4';
               for (let pt = 0; pt < 2; pt++) {
                  particlesArray.push(new Particle(this.x + (Math.random()-0.5)*10, this.y + (Math.random()-0.5)*10, particleColor, -dx * 1.2 + (Math.random()-0.5)*2, -dy * 1.2 + (Math.random()-0.5)*2, 20 + Math.random()*10));
               }
@@ -1807,6 +2364,25 @@
           // Invincibility protection ticks
           if (this.ultimateInvincibleFrames > 0) {
             this.ultimateInvincibleFrames--;
+          }
+          if (this.slowDebuffFrames > 0) {
+            this.slowDebuffFrames--;
+          }
+
+          // Card effect curse timers
+          let needsRecalc = false;
+          for (const effect of this.activeEffects) {
+            if (effect.curseFrames > 0) {
+              effect.curseFrames--;
+              if (effect.curseFrames <= 0) {
+                needsRecalc = true;
+                floatsArray.push(new FloatingText(this.x, this.y - 45, `✨ 诅咒消散！力量完全解放！`, '#10b981'));
+                playExplosionSound(false);
+              }
+            }
+          }
+          if (needsRecalc) {
+            this.recalcStats();
           }
 
           // ===== 星辰底牌：定时生成黑色漩涡 =====
@@ -1836,7 +2412,7 @@
                 for (const enemy of enemiesArray) {
                   let density = 0;
                   for (const other of enemiesArray) {
-                    if (Math.hypot(enemy.x - other.x, enemy.y - other.y) < 120) density++;
+                    if (((enemy.x - other.x)*(enemy.x - other.x) + (enemy.y - other.y)*(enemy.y - other.y)) < ()*()120) density++;
                   }
                   if (density > maxDensity) { maxDensity = density; bestEnemy = enemy; }
                 }
@@ -2078,6 +2654,8 @@
         shockwavesArray = [];
         blackVorticesArray = [];
         scribbleLinesCache = null;
+        expOrbsArray = [];
+        enemyBulletsArray = [];
 
         // Reset hand & strategic ultimate systems
         playerHand = [];
@@ -2096,10 +2674,20 @@
         rawUpdateFrameCount = 0;
         gameTimerSeconds = 0;
         totalKillsCount = 0;
-        currentKillTierCounter = 0;
-        nextKillTierThreshold = 8;
         activeDifficultyLevel = 1;
+        playerAge = 1;
+        currentExp = 0;
+        nextExpThreshold = 120;
+        currentPhase = 1;
+        bossDefeatedPhase1 = false;
+        bossSpawnedPhase2 = false;
+        bossDefeatedPhase2 = false;
+        bossSpawnedPhase3 = false;
+        bossDefeatedPhase3 = false;
+        bossSpawnedPhase4 = false;
         isGamePausedForDivination = false;
+        drawQueue = [];
+        isDrawing = false;
         totalDrawsCount = 0;
         screenShakeIntensity = 0;
 
@@ -2117,8 +2705,8 @@
         gameoverScreen.classList.remove('opacity-100');
         gameoverScreen.classList.add('opacity-0', 'pointer-events-none');
 
-        divinationScreen.classList.remove('opacity-100');
-        divinationScreen.classList.add('opacity-0', 'pointer-events-none');
+        document.getElementById('victory-screen').classList.remove('opacity-100');
+        document.getElementById('victory-screen').classList.add('opacity-0', 'pointer-events-none');
 
         setTimeout(() => {
           gameCanvas.classList.remove('opacity-0');
@@ -2128,8 +2716,8 @@
           isPlaying = true;
         }, 300);
 
-        // Add 6 intro creepers for responsive startup feel
-        for (let i = 0; i < 6; i++) {
+        // Add 15 intro creepers for responsive startup feel (难度下限提升)
+        for (let i = 0; i < 15; i++) {
           spawnSingleEnemyEdge();
         }
       }
@@ -2157,26 +2745,20 @@
           sy = randY;
         }
 
-        // Weighted spawning probabilities based on current level tier & assassin milestones (now 30 kills or Lvl >= 3)
-        const roll = Math.random();
-        let eType = 'creeper';
-        
-        const canSpawnAssassin = (totalKillsCount >= 30 || activeDifficultyLevel >= 3);
-        if (canSpawnAssassin && Math.random() < Math.min(0.38, 0.12 + activeDifficultyLevel * 0.025)) {
-          eType = 'assassin';
-        } else {
-          // As difficulty level rises, progressively skew probabilities targeting more elite units (rippers and behemoths)
-          const creeperChance = Math.max(0.30, 0.65 - activeDifficultyLevel * 0.02);
-          const ripperChance = Math.max(0.20, 0.20 + activeDifficultyLevel * 0.01);
-          
-          if (roll < creeperChance) {
-            eType = 'creeper';
-          } else if (roll < (creeperChance + ripperChance)) {
-            eType = 'ripper';
-          } else {
-            eType = 'behemoth';
-          }
+        // Weighted spawning probabilities based on current level tier
+        let types = [];
+        if (currentPhase === 1) {
+          types = ['loner', 'scold', 'homework', 'exam', 'mistake', 'imbalance', 'bully', 'nagging', 'cramming', 'control'];
+        } else if (currentPhase === 2) {
+          types = ['bully', 'nagging', 'cramming', 'control', 'love_loss', 'social_phobia', 'cert', 'confusion', 'fail', 'thesis', 'prep', 'gpa', 'ldt', 'push_marriage', 'blind_date', 'ddl'];
+        } else if (currentPhase === 3) {
+          types = ['overtime', 'exploit', 'blame', 'low_pay', 'nitpick', 'kpi', 'push_marry', 'blind_date2', 'car_loan', 'mortgage', 'layoff', 'social', 'elderly', 'insomnia', 'weight', 'hairloss'];
+        } else if (currentPhase === 4) {
+          types = ['lonely', 'forgetful', 'frail', 'insomnia2', 'deaf', 'blurry'];
         }
+
+        const maxIndex = Math.min(types.length, 2 + activeDifficultyLevel);
+        const eType = types[Math.floor(Math.random() * maxIndex)];
 
         const newEnemy = new Enemy(sx, sy, eType);
 
@@ -2199,40 +2781,39 @@
         enemiesArray.push(newEnemy);
       }
 
+      function spawnBoss(type) {
+        if (!playerObj) return;
+        // 在屏幕顶端生成
+        const sx = GAME_WIDTH / 2;
+        const sy = -100;
+        
+        if (type === 'academic_phase2' || type === 'career') {
+          // 双子星偏置一下坐标
+          const offsetX = type === 'career' ? 150 : -150;
+          const boss = new Enemy(sx + offsetX, sy, type);
+          enemiesArray.push(boss);
+        } else {
+          const boss = new Enemy(sx, sy, type);
+          enemiesArray.push(boss);
+        }
+        
+        // 生成特效
+        screenShakeIntensity = 50;
+        playExplosionSound(true);
+      }
+
       function updateHudStats() {
         if (!playerObj) return;
-
-        const spdPct = (playerObj.getSpeed() / 3.6) * 100;
-        statSpeed.textContent = `${spdPct.toFixed(0)}%`;
-        statDamage.textContent = `${playerObj.getDamage().toFixed(1)} /1X`;
-        
-        // Approximate firing operations indicator
-        const shotsPerSec = 60.0 / playerObj.getCurrentFireInterval();
-        statFireRate.textContent = `${shotsPerSec.toFixed(1)} /s`;
-        
-        let trajDesc = "自动指向单粒";
-        if (playerObj.magicianCount > 0) {
-          const prob = playerObj.magicianCount * 20;
-          trajDesc = `多重分裂 (${prob}%)`;
-        }
-        if (playerObj.moonBlackActive) {
-          trajDesc += " + 无限穿透追踪";
-        }
-        statProjectiles.textContent = trajDesc;
-
-        if (statAllies) {
-          statAllies.textContent = alliesArray.length;
-        }
 
         // Shield readings status removed (Priestess card removed)
         hudShieldStatus.textContent = "🛡️ 装甲系统：待定";
         hudShieldStatus.style.color = '#6b7280';
 
-        // Kill counters readings
-        hudKillCount.textContent = `击杀总数: ${totalKillsCount}`;
-        killProgressLabel.textContent = `觉醒契约进度: ${currentKillTierCounter} / ${nextKillTierThreshold}`;
+        // Age / EXP counters readings
+        hudKillCount.textContent = `AGE: ${playerAge} 岁`;
+        killProgressLabel.textContent = `EXP: ${currentExp} / ${nextExpThreshold}`;
         
-        let progressPercent = (currentKillTierCounter / nextKillTierThreshold) * 100;
+        let progressPercent = (currentExp / nextExpThreshold) * 100;
         killProgressBar.style.width = `${Math.min(100, Math.max(0, progressPercent))}%`;
 
         // Time
@@ -2240,7 +2821,9 @@
         const s = Math.floor(gameTimerSeconds % 60);
         statTimer.textContent = `⏱️ 持续时间 ${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
         
-        hudLevel.textContent = `DESTINY TIER ${activeDifficultyLevel}`;
+        const phaseNames = { 1: '阶段一：幼年', 2: '阶段二：青年', 3: '阶段三：中年', 4: '阶段四：老年' };
+        const phaseText = phaseNames[currentPhase] || `阶段${currentPhase}`;
+        hudLevel.textContent = `${phaseText} (难度 ${activeDifficultyLevel})`;
 
         // Update health hearts overlay
         updateHeartsOverlay();
@@ -2281,6 +2864,7 @@
           if (i < playerHand.length) {
             const card = playerHand[i];
             const isBlack = card.isBlack;
+            const effectDesc = card.desc;
             
             slot.className = `h-11 flex flex-col items-center justify-center rounded-lg border-3 text-stone-900 font-sans text-center select-none relative overflow-hidden transition-all duration-300 transform ${
               isBleedingReplacement 
@@ -2290,6 +2874,7 @@
             
             slot.style.borderColor = card.color;
             slot.style.boxShadow = `3px 3px 0px #1c1917`;
+            slot.title = `${card.name} (${card.roman}) - ${isBlack ? '逆位' : '正位'}\n${effectDesc}`;
             
             if (isBlack) {
               slot.style.backgroundColor = '#1c1917';
@@ -2307,7 +2892,7 @@
               <!-- Hover tooltip -->
               <div class="hidden group-hover:flex flex-col absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-48 p-2 bg-white border-2 border-stone-900 rounded-lg text-[8px] text-stone-800 pointer-events-none z-50 shadow-[4px_4px_0px_#1c1917]">
                 <span class="font-black border-b-2 border-stone-900 border-dashed pb-1 mb-1" style="color: ${card.color}">${variantMark} ${card.name}</span>
-                <span class="leading-normal font-bold">${card.desc}</span>
+                <span class="leading-normal font-bold">${effectDesc}</span>
               </div>
             `;
 
@@ -2384,240 +2969,11 @@
         }
       }
 
-      // Elegant full-screen divination system pausing gameplay and displaying an automated high-fidelity Card Reveal Animation
-      function triggerDivinationChoice() {
-        if (!isPlaying || isGamePausedForDivination) return;
 
-        // Reset kill threshold meter immediately
-        currentKillTierCounter = 0;
+      let drawQueue = [];
+      let isDrawing = false;
 
-        // Halt gameplay loops & physics
-        isGamePausedForDivination = true;
-
-        // Retrieve random Tarot card pool (utilizing existing weighted algorithm)
-        const drawnPool = getThreeRandomCards();
-        const card = drawnPool[Math.floor(Math.random() * drawnPool.length)];
-
-        // Play card sweep reveal cue
-        playCardSweep();
-
-        // Clear choices container
-        divinationCardsContainer.innerHTML = '';
-
-        // Update the concentric magic occult glow rings shadows to match drawn card's mood
-        const ringEl = document.getElementById('occult-glow-ring');
-        if (ringEl) {
-          ringEl.style.filter = `drop-shadow(0 0 30px ${card.color}20)`;
-        }
-
-        // Inner HTML injection
-        const revealEl = document.createElement('div');
-        revealEl.className = "flex flex-col items-center w-full";
-        
-        revealEl.innerHTML = `
-          <!-- 3D Card Containment Wrap -->
-          <div class="card-wrap w-64 sm:w-[270px] h-[370px] sm:h-[396px] cursor-pointer" id="tarot-card-click-area">
-            <div id="tarot-card-flipper" class="card-flipper w-full h-full">
-              
-              <!-- Card Back (Unrevealed State) -->
-              <div class="card-face card-back flex flex-col items-center justify-between p-6 bg-[#030305] border-2 border-amber-500/40 rounded-2xl shadow-[0_0_25px_rgba(245,158,11,0.25)]">
-                <div class="w-full flex justify-between text-amber-500/20 font-serif text-[7.5px] tracking-[0.25em]">
-                  <span>ASTRAL ARCHON</span>
-                  <span>DESTINY CODE</span>
-                </div>
-                
-                <div class="flex flex-col items-center relative py-4">
-                  <!-- Concentric mystics -->
-                  <div class="w-24 h-24 rounded-full border border-dashed border-amber-500/15 flex items-center justify-center relative animate-occult-spin">
-                    <div class="w-18 h-18 rounded-full border border-dotted border-amber-600/20 flex items-center justify-center animate-occult-spin-reverse">
-                      <span class="text-3xl filter drop-shadow-[0_0_10px_rgba(245,158,11,0.5)]">🔮</span>
-                    </div>
-                  </div>
-                  <span class="text-[8.5px] font-bold text-amber-400/80 mt-5 tracking-[0.2em] uppercase animate-pulse">
-                    点击或等待星能注入
-                  </span>
-                </div>
-                
-                <div class="text-center w-full">
-                  <span id="awaken-text" class="text-[7.5px] text-gray-500 font-sans tracking-widest block uppercase mb-1">
-                    契约充能进度
-                  </span>
-                  <div class="h-1 bg-amber-950/40 w-4/5 mx-auto rounded-full overflow-hidden border border-amber-900/5">
-                    <div id="back-progress-bar" class="h-full bg-amber-500 rounded-full transition-all duration-75" style="width: 0%"></div>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Card Front (Revealed State) -->
-              <div id="tarot-card-front" class="card-face card-front flex flex-col items-center justify-between p-5 bg-[#030306] border-2 rounded-2xl">
-                <!-- Backlight Ambient -->
-                <div class="absolute inset-0 bg-radial via-transparent to-transparent opacity-10 pointer-events-none" style="background-image: radial-gradient(circle, ${card.color}20 0%, transparent 70%)"></div>
-
-                <div class="flex flex-col items-center text-center mt-1 w-full z-10">
-                  <!-- Roman Numeral Title -->
-                  <span class="font-serif text-3xl font-black tracking-widest" style="color: ${card.color}; text-shadow: 0 0 10px ${card.color}80">
-                    ${card.roman}
-                  </span>
-                  <span class="text-[8px] font-mono tracking-[0.25em] uppercase opacity-40 mt-0.5 text-slate-300">
-                    ${card.tag}
-                  </span>
-                </div>
-
-                <!-- Symbol container -->
-                <div class="w-20 h-20 rounded-full border flex items-center justify-center relative z-10" style="border-color: ${card.color}30; background: radial-gradient(circle, ${card.color}15 0%, transparent 70%)">
-                  <div class="absolute inset-1.5 rounded-full border border-dashed" style="border-color: ${card.color}20"></div>
-                  <div class="text-4xl filter" style="filter: drop-shadow(0 0 8px ${card.color})">
-                    ${getTarotEmoji(card.id)}
-                  </div>
-                </div>
-
-                <!-- Bottom text -->
-                <div class="flex flex-col items-center w-full z-15 text-center mt-1">
-                  <h3 class="text-xs font-black tracking-widest text-white mb-1.5">
-                    ${card.name}
-                  </h3>
-                  
-                  <span class="text-[7.5px] font-mono uppercase font-bold tracking-widest px-2 py-0.5 rounded-full border" style="border-color: ${card.color}40; color: ${card.color}; background-color: ${card.color}10">
-                    ${card.isBlack ? '⚫ 逆位' : '⚪ 正位'} • ${card.tags ? card.tags[0] : '命理'}
-                  </span>
-                  
-                  <p class="text-[9px] leading-relaxed text-zinc-350 mt-2 font-sans px-1 opacity-90">
-                    ${card.desc}
-                  </p>
-                </div>
-
-                <!-- Hover neon overlay border -->
-                <div class="absolute inset-0 rounded-2xl border-2 pointer-events-none" style="border-color: ${card.color}; box-shadow: inset 0 0 15px ${card.color}30, 0 0 20px ${card.color}30"></div>
-              </div>
-
-            </div>
-          </div>
-
-          <!-- Active status label and Auto resume countdown bar -->
-          <div class="mt-4 flex flex-col items-center z-20 w-4/5 text-center h-14">
-            <button id="btn-sync-card" class="opacity-0 scale-90 pointer-events-none transition-all duration-300 font-arcade uppercase font-black text-[9px] tracking-widest px-6 py-2 rounded-md border text-black bg-white border-white hover:bg-neutral-200 active:scale-95 cursor-pointer shadow-lg">
-              🔮 契入灵魂且重返战场
-            </button>
-            <div id="countdown-deck-indicator" class="opacity-0 transition-opacity duration-300 text-[8px] font-mono text-slate-400 mt-2">
-              ⏳ 宿命共鸣中，4秒后自动重返战场...
-            </div>
-          </div>
-        `;
-
-        divinationCardsContainer.appendChild(revealEl);
-
-        // Open the divination overlay screen
-        divinationScreen.classList.remove('opacity-0', 'pointer-events-none', 'scale-95');
-        divinationScreen.classList.add('opacity-100', 'scale-100');
-        divinationScreen.style.pointerEvents = 'auto';
-
-        // State variables for controlling our animation flow
-        let hasFlipped = false;
-        let progressPercent = 0;
-        let autoReturnTimer = null;
-        let progressInterval = null;
-        let countdownInterval = null;
-
-        const flipperEl = document.getElementById('tarot-card-flipper');
-        const clickArea = document.getElementById('tarot-card-click-area');
-        const progressBar = document.getElementById('back-progress-bar');
-        const syncButton = document.getElementById('btn-sync-card');
-        const indicatorText = document.getElementById('countdown-deck-indicator');
-
-        // Main action resolver trigger
-        function executeSyncAndResume() {
-          // Clean up any remaining timers and intervals
-          if (progressInterval) clearInterval(progressInterval);
-          if (countdownInterval) clearInterval(countdownInterval);
-          if (autoReturnTimer) clearTimeout(autoReturnTimer);
-          
-          // Complete selection action
-          selectCardChoice(card);
-        }
-
-        // Action when card is flipped (triggered automatically or on manual click)
-        function triggerCardFlip() {
-          if (hasFlipped) return;
-          hasFlipped = true;
-
-          // Stop back charging progress interval
-          if (progressInterval) clearInterval(progressInterval);
-
-          // Rotate card 180 degrees
-          flipperEl.classList.add('flipped');
-
-          // Sound trigger and floating particles inside game
-          playExplosionSound(true);
-          
-          // Screen shake feedback
-          screenShakeIntensity = 10;
-
-          // Reveal UI buttons with slide-up fade animations
-          setTimeout(() => {
-            syncButton.classList.remove('opacity-0', 'scale-90', 'pointer-events-none');
-            syncButton.classList.add('opacity-100', 'scale-100');
-            syncButton.style.pointerEvents = 'auto';
-
-            indicatorText.classList.remove('opacity-0');
-            indicatorText.classList.add('opacity-100');
-
-            // Set up a 4-second auto-close mechanism for the ritual
-            let remainingMs = 4000;
-            const updateCountDownText = () => {
-              const sec = (remainingMs / 1000).toFixed(1);
-              let barChars = '';
-              const fillCount = Math.ceil(remainingMs / 500); // 8 bars max
-              for (let i = 0; i < 8; i++) {
-                barChars += i < fillCount ? '■' : ' ';
-              }
-              indicatorText.textContent = `⚡ [${barChars}] 宿命契约深度共鸣，在 ${sec}s 后自动激活...`;
-            };
-
-            updateCountDownText();
-
-            countdownInterval = setInterval(() => {
-              remainingMs -= 100;
-              if (remainingMs <= 0) {
-                clearInterval(countdownInterval);
-              } else {
-                updateCountDownText();
-              }
-            }, 100);
-
-            // Timeout to resume gameplay automatically
-            autoReturnTimer = setTimeout(() => {
-              clearInterval(countdownInterval);
-              executeSyncAndResume();
-            }, 4000);
-
-          }, 400);
-        }
-
-        // Progress bar simulation (reaches threshold after 1000 ms)
-        progressInterval = setInterval(() => {
-          progressPercent += 5;
-          if (progressBar) {
-            progressBar.style.width = `${progressPercent}%`;
-          }
-          if (progressPercent >= 100) {
-            clearInterval(progressInterval);
-            triggerCardFlip();
-          }
-        }, 50);
-
-        // Click to instantly bypass charge animation and flip card
-        clickArea.addEventListener('click', () => {
-          triggerCardFlip();
-        });
-
-        // Click on sync button to return instantly
-        syncButton.addEventListener('click', (e) => {
-          e.stopPropagation(); // avoid double clicks
-          executeSyncAndResume();
-        });
-      }
-
-      // Real-time automatic Tarot Card drawing handler
+      // Real-time automatic Tarot Card drawing handler (Dealer Driven)
       function triggerRealtimeAutoDraw() {
         if (!isPlaying) return;
 
@@ -2628,135 +2984,172 @@
         const drawnPool = getThreeRandomCards();
         const card = drawnPool[Math.floor(Math.random() * drawnPool.length)];
 
-        // ANIMATE: bottom-right flying card to bottom-left hand
-        animateFlyingCard(card);
-
-        // DAMAGE: colossal surrounding area explosion centered at player position
-        if (playerObj) {
-          triggerTarotExplosion(playerObj.x, playerObj.y, card.color);
-        }
-
-        // ADD TO HAND (and handle ultimate fusion or hand limits)
-        selectCardChoice(card);
+        drawQueue.push(card);
+        processDrawQueue();
+      }
+      
+      function processDrawQueue() {
+        if (isDrawing || drawQueue.length === 0) return;
+        isDrawing = true;
+        
+        const card = drawQueue.shift();
+        triggerDealerDrawAnimation(card, () => {
+          selectCardChoice(card);
+          isDrawing = false;
+          processDrawQueue(); // process next in queue if any
+        });
       }
 
-      // Large scale explosion from real-time Tarot Draws
-      function triggerTarotExplosion(x, y, cardColor) {
-        // Play loud explosion sound effect
-        playExplosionSound(true);
-        // Set significant screen shake
-        screenShakeIntensity = Math.min(45, screenShakeIntensity + 28);
+      // The 3-phase Dealer animation sequence
+      function triggerDealerDrawAnimation(card, onComplete) {
+        const dealerChar = document.getElementById('dealer-character');
+        const bubble = document.getElementById('dealer-bubble');
+        const bubbleText = document.getElementById('dealer-bubble-text');
+        const flyCard = document.getElementById('dealer-flying-card');
+        const cardFlipper = document.getElementById('dealer-card-flipper');
         
-        const explosionRadius = 260; // Huge range
-        const damageValue = 350; // Huge damage to clear the screen!
+        // 1. Dealer Animation & Celtic Cross Bubble
+        dealerChar.classList.remove('dealer-idle');
+        dealerChar.classList.add('dealer-dealing');
         
-        // Spawn beautiful shockwave ring
-        shockwavesArray.push(new Shockwave(x, y, 10, explosionRadius, cardColor));
+        let readingArr = CELTIC_CROSS_READINGS[card.id] || ["「星象异动，宿命难测。」"];
+        let readText = readingArr[Math.floor(Math.random() * readingArr.length)];
+        let effectColor = card.isBlack ? '#ef4444' : '#10b981';
+        bubbleText.innerHTML = `${readText}<br><span style="color:${card.color}">${card.name}</span><br><span style="color:${effectColor}; font-size:7px; display:inline-block; margin-top:3px; line-height:1.2;">[${card.desc}]</span>`;
+        
+        bubble.classList.remove('dealer-bubble-hidden');
+        bubble.classList.add('dealer-bubble-show');
+        
+        // Setup Flying Card DOM content
+        document.getElementById('dfc-roman').textContent = card.roman || 'I';
+        document.getElementById('dfc-roman').style.color = card.color;
+        document.getElementById('dfc-icon').textContent = getTarotEmoji(card.id);
+        document.getElementById('dfc-name').textContent = card.name.replace(/【|】/g, '');
+        document.getElementById('dfc-name').style.color = card.color;
+        
+        cardFlipper.style.borderColor = card.color;
+        cardFlipper.style.boxShadow = `0 0 15px ${card.color}80`;
 
-        // Spawn secondary expanding shockwave
+        // Calculate positions
+        const tableRect = document.getElementById('dealer-table').getBoundingClientRect();
+        const handRect = document.getElementById('deck-list-panel').getBoundingClientRect();
+        
+        // Pick a random corner for reveal (avoiding exact center where player might be)
+        const corners = [
+          { x: GAME_WIDTH * 0.2, y: GAME_HEIGHT * 0.25 },
+          { x: GAME_WIDTH * 0.8, y: GAME_HEIGHT * 0.25 },
+          { x: GAME_WIDTH * 0.2, y: GAME_HEIGHT * 0.75 },
+          { x: GAME_WIDTH * 0.8, y: GAME_HEIGHT * 0.75 }
+        ];
+        // Bias away from player
+        let bestCorner = corners[0];
+        let maxDist = 0;
+        if (playerObj) {
+           corners.forEach(c => {
+             const d = Math.hypot(c.x - playerObj.x, c.y - playerObj.y);
+             if (d > maxDist) { maxDist = d; bestCorner = c; }
+           });
+        }
+        
+        // Reset card state to dealer table
+        flyCard.style.transition = 'none';
+        cardFlipper.style.transition = 'none';
+        cardFlipper.classList.remove('flipped');
+        
+        // Set initial pos (center top)
+        flyCard.style.left = `${tableRect.left}px`;
+        flyCard.style.top = `${tableRect.top}px`;
+        flyCard.style.transform = `scale(0.5) rotate(0deg)`;
+        flyCard.style.opacity = '1';
+        
+        // Force reflow
+        void flyCard.offsetWidth;
+        
+        // PHASE 1: Fly to reveal spot
+        flyCard.style.transition = 'all 400ms cubic-bezier(0.25, 1, 0.5, 1)';
+        flyCard.style.left = `${bestCorner.x}px`;
+        flyCard.style.top = `${bestCorner.y}px`;
+        flyCard.style.transform = `scale(1.5) rotate(360deg)`;
+        
+        setTimeout(() => {
+          // PHASE 2: Flip and Boom!
+          cardFlipper.style.transition = 'transform 500ms cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+          cardFlipper.classList.add('flipped');
+          
+          triggerTarotExplosion(bestCorner.x, bestCorner.y, card.color);
+          
+          // White flash
+          const flash = document.createElement('div');
+          flash.className = 'flash-white';
+          document.body.appendChild(flash);
+          setTimeout(() => flash.remove(), 100);
+
+          setTimeout(() => {
+            // PHASE 3: Fly to hand
+            flyCard.style.transition = 'all 600ms cubic-bezier(0.5, 0, 0.2, 1)';
+            flyCard.style.left = `${handRect.left + 20}px`;
+            flyCard.style.top = `${handRect.top}px`;
+            flyCard.style.transform = `scale(0.3) rotate(720deg)`;
+            flyCard.style.opacity = '0';
+            
+            // Reset Dealer
+            dealerChar.classList.remove('dealer-dealing');
+            dealerChar.classList.add('dealer-idle');
+            
+            setTimeout(() => {
+              bubble.classList.remove('dealer-bubble-show');
+              bubble.classList.add('dealer-bubble-hidden');
+            }, 1000);
+            
+            setTimeout(() => {
+              if (onComplete) onComplete();
+            }, 500); // Trigger hand logic just as it reaches bottom
+            
+          }, 700); // Hold the revealed card for 700ms
+        }, 400);
+      }
+
+      // Large scale explosion from real-time Tarot Draws (Buffed)
+      function triggerTarotExplosion(x, y, cardColor) {
+        playExplosionSound(true);
+        // Huge screen shake
+        screenShakeIntensity = 40;
+        
+        const explosionRadius = 400; // Increased radius
+        const damageValue = 500; // Increased damage
+        
+        shockwavesArray.push(new Shockwave(x, y, 12, explosionRadius, cardColor));
         setTimeout(() => {
           if (isPlaying) {
-            shockwavesArray.push(new Shockwave(x, y, 5, explosionRadius * 0.75, '#ea580c'));
+            shockwavesArray.push(new Shockwave(x, y, 6, explosionRadius * 0.8, '#ea580c'));
           }
-        }, 150);
+        }, 100);
 
-        // Add heavy particle burst for visual flare
-        for (let idx = 0; idx < 80; idx++) {
+        for (let idx = 0; idx < 120; idx++) {
           const angle = Math.random() * Math.PI * 2;
-          const speed = Math.random() * 9 + 4;
-          particlesArray.push(new Particle(x, y, cardColor || '#eab308', Math.cos(angle) * speed, Math.sin(angle) * speed, 50));
+          const speed = Math.random() * 12 + 5;
+          particlesArray.push(new Particle(x, y, cardColor || '#eab308', Math.cos(angle) * speed, Math.sin(angle) * speed, 60));
         }
 
         // Damage calculation across all active enemies
         for (let enemy of enemiesArray) {
-          const dist = Math.hypot(enemy.x - x, enemy.y - y);
-          if (dist < explosionRadius) {
+          const distSq = (enemy.x - x)*(enemy.x - x) + (enemy.y - y)*(enemy.y - y);
+          if (distSq < (explosionRadius)*(explosionRadius)) {
             enemy.hp -= damageValue;
             enemy.hitFlashDuration = 5;
             
-            // Spawn impact sparks
-            for (let spIdx = 0; spIdx < 3; spIdx++) {
+            for (let spIdx = 0; spIdx < 5; spIdx++) {
               const spAngle = Math.random() * Math.PI * 2;
-              const spSpeed = Math.random() * 2 + 1;
-              particlesArray.push(new Particle(enemy.x, enemy.y, cardColor, Math.cos(spAngle) * spSpeed, Math.sin(spAngle) * spSpeed, 15));
+              const spSpeed = Math.random() * 3 + 1;
+              particlesArray.push(new Particle(enemy.x, enemy.y, cardColor, Math.cos(spAngle) * spSpeed, Math.sin(spAngle) * spSpeed, 20));
             }
             
-            // Floating damage text in matching card color
-            floatsArray.push(new FloatingText(enemy.x, enemy.y - 12, `💥 宿命迸射 -350`, cardColor));
+            floatsArray.push(new FloatingText(enemy.x, enemy.y - 12, `💥 宿命惩戒 -500`, cardColor));
           }
         }
       }
 
-      // Animate flying card in bottom right area to bottom left array
-      function animateFlyingCard(card) {
-        const flyingTarotCard = document.getElementById('flying-tarot-card');
-        if (!flyingTarotCard) return;
 
-        // Map card ID to descriptive symbol icon using getTarotEmoji
-        const emote = getTarotEmoji(card.id);
-
-        // Set details
-        const rEl = document.getElementById('fly-card-roman');
-        if (rEl) {
-          rEl.textContent = card.roman || 'I';
-          rEl.style.color = card.color;
-        }
-        const iEl = document.getElementById('fly-card-icon');
-        if (iEl) {
-          iEl.textContent = emote;
-        }
-        const nEl = document.getElementById('fly-card-name');
-        if (nEl) {
-          nEl.textContent = card.name ? card.name.replace(/【|】/g, '') : 'UNKNOWN';
-          nEl.style.color = card.color;
-        }
-        flyingTarotCard.style.borderColor = card.color;
-        // Use elegant box shadow
-        flyingTarotCard.style.boxShadow = `3px 3px 0px #1c1917`;
-
-        // Reset to starting position (right on top of the pile)
-        flyingTarotCard.style.transition = 'none';
-        flyingTarotCard.style.opacity = '1';
-        flyingTarotCard.style.transform = 'translate(0px, 0px) scale(1) rotate(-5deg)';
-        
-        // Update ticker label
-        const ticker = document.getElementById('deck-ticker');
-        if (ticker) {
-          ticker.textContent = `🔮 唤醒: ${card.name ? card.name.replace(/【|】/g, '') : 'TAROT'}!`;
-          ticker.style.color = card.color;
-        }
-
-        // Spark effect in game coordinates around player
-        for (let i = 0; i < 15; i++) {
-          const a = Math.random() * Math.PI * 2;
-          const s = Math.random() * 3 + 1;
-          particlesArray.push(new Particle(playerObj.x, playerObj.y, card.color, Math.cos(a) * s, Math.sin(a) * s, 25));
-        }
-
-        // Force reflow
-        void flyingTarotCard.offsetWidth;
-
-        // Get bounds to do math
-        const deckRect = document.getElementById('tarot-auto-deck').getBoundingClientRect();
-        const handRect = document.getElementById('deck-list-panel').getBoundingClientRect();
-        const deltaX = handRect.left - deckRect.left + 50; // offset a bit to target hand center
-        const deltaY = handRect.top - deckRect.top + 30;
-
-        // Animate translation over 1 second, fading out towards the end
-        setTimeout(() => {
-          flyingTarotCard.style.transition = 'all 1000ms cubic-bezier(0.16, 1, 0.3, 1)';
-          flyingTarotCard.style.transform = `translate(${deltaX}px, ${deltaY}px) scale(0.3) rotate(-385deg)`;
-          flyingTarotCard.style.opacity = '0';
-        }, 120);
-
-        // Reset ticker back to default idle after 2500ms
-        setTimeout(() => {
-          if (ticker && isPlaying) {
-            ticker.textContent = '空闲 • 汇聚宿命灵魂能...';
-            ticker.style.color = '#78716c';
-          }
-        }, 2500);
-      }
 
       // Action resolver once the player selects or is assigned an interactive tarot card option
       function selectCardChoice(drawnCard) {
@@ -2804,11 +3197,15 @@
           playExplosionSound(true);
 
           const variant = drawnCard.isBlack ? '⚫ 逆位' : '⚪ 正位';
-          floatsArray.push(new FloatingText(playerObj.x, playerObj.y - 30, `🔮 ${variant}: ${drawnCard.name}`, drawnCard.color));
+          const effectDesc = drawnCard.desc;
+          const effectColor = drawnCard.isBlack ? '#ef4444' : '#10b981';
+          
+          floatsArray.push(new FloatingText(playerObj.x, playerObj.y - 45, `🔮 ${variant}: ${drawnCard.name}`, drawnCard.color));
+          floatsArray.push(new FloatingText(playerObj.x, playerObj.y - 30, `[${effectDesc}]`, effectColor));
 
-          // 9 张满载 → 触发祭天熔铸
+          // 9 张满载 → 触发祭天熔铸（延迟到当前帧结束后执行，避免在碰撞循环中清空敌人数组导致卡死）
           if (playerHand.length === 9) {
-            triggerUltimateDivinationSettlement();
+            setTimeout(() => animateSynthesisAndSettle(), 0);
           }
         } else {
           // 手牌已满！进入流血替换
@@ -2831,15 +3228,97 @@
           }
         }
 
-        // Hide divination window
-        divinationScreen.classList.remove('opacity-100', 'scale-100');
-        divinationScreen.classList.add('opacity-0', 'pointer-events-none', 'scale-95');
-        divinationScreen.style.pointerEvents = 'none';
 
-        isGamePausedForDivination = false;
 
         updateHudStats();
         updateHandGridUI();
+      }
+
+      // "Cool, simple, but powerful" synthesis animation
+      function animateSynthesisAndSettle() {
+        const handGrid = document.getElementById('hand-grid');
+        const cards = Array.from(handGrid.querySelectorAll('.tarot-card-item'));
+        
+        if (cards.length === 0) {
+           triggerUltimateDivinationSettlement();
+           return;
+        }
+
+        // Pause standard interactions & freeze game
+        isGamePausedForDivination = true;
+        playSynthesisChargeSound();
+
+        const centerX = window.innerWidth / 2;
+        const centerY = window.innerHeight / 2;
+
+        // Clone cards for flying animation
+        const clones = cards.map(card => {
+          const rect = card.getBoundingClientRect();
+          const clone = card.cloneNode(true);
+          clone.id = ''; // Strip IDs
+          clone.style.position = 'fixed';
+          clone.style.left = rect.left + 'px';
+          clone.style.top = rect.top + 'px';
+          clone.style.width = rect.width + 'px';
+          clone.style.height = rect.height + 'px';
+          clone.style.margin = '0';
+          clone.style.zIndex = '9999';
+          clone.style.transition = 'transform 0.05s ease-in-out';
+          document.body.appendChild(clone);
+          
+          card.style.opacity = '0'; // Hide original early
+          return clone;
+        });
+
+        let shakeTicks = 0;
+        let trembleInterval = setInterval(() => {
+          shakeTicks++;
+          const intensity = Math.min(shakeTicks * 0.5, 15);
+          clones.forEach(clone => {
+            const rx = (Math.random() - 0.5) * intensity;
+            const ry = (Math.random() - 0.5) * intensity;
+            clone.style.transform = `translate(${rx}px, ${ry}px) rotate(${rx * 2}deg)`;
+          });
+          screenShakeIntensity = intensity * 0.5; // Slight screen shake during charge
+        }, 30);
+
+        setTimeout(() => {
+          clearInterval(trembleInterval);
+          
+          // Suction phase (Fly to center and shrink)
+          clones.forEach((clone, idx) => {
+            clone.style.transition = 'all 0.3s cubic-bezier(0.55, 0.085, 0.68, 0.53)';
+            const rect = clone.getBoundingClientRect();
+            // Calculate vector to exact center
+            const tx = centerX - (rect.left + rect.width / 2);
+            const ty = centerY - (rect.top + rect.height / 2);
+            clone.style.transform = `translate(${tx}px, ${ty}px) scale(0) rotate(${720 + idx * 45}deg)`;
+            clone.style.opacity = '0';
+          });
+
+          // Wait for suction to finish, then BOOM
+          setTimeout(() => {
+            clones.forEach(c => c.remove());
+            
+            // White flash
+            const flash = document.createElement('div');
+            flash.className = 'flash-white';
+            document.body.appendChild(flash);
+            setTimeout(() => flash.remove(), 150);
+            
+            // Multiple shockwaves for "powerful" feel
+            if (playerObj) {
+              shockwavesArray.push(new Shockwave(playerObj.x, playerObj.y, 18, 600, '#c084fc'));
+              setTimeout(() => {
+                if (isPlaying) shockwavesArray.push(new Shockwave(playerObj.x, playerObj.y, 8, 400, '#ffffff'));
+              }, 100);
+            }
+
+            isGamePausedForDivination = false;
+            triggerUltimateDivinationSettlement();
+          }, 300);
+
+        }, 800); // 0.8s charge time
       }
 
       // Handle full collection automatic 9-to-1 smelting
@@ -2866,9 +3345,10 @@
           }
         });
         enemiesArray = [];
+        enemyBulletsArray = []; // 清理疾病弹幕
 
         floatsArray.push(new FloatingText(playerObj.x, playerObj.y - 45, "🌟 命运大满贯 • 终极降世无敌屏障！", "#c084fc"));
-        playerObj.ultimateInvincibleFrames = 180;
+        playerObj.ultimateInvincibleFrames = 300; // 5 秒无敌（延长以缓解真空期）
 
         // 2. 统计黑牌数量，决定底牌 Tier
         const blackCount = playerHand.filter(card => card.isBlack).length;
@@ -2908,16 +3388,32 @@
           speedBonus: 0
         });
 
-        // 3. 清除所有手牌效果
-        playerObj.activeEffects = playerObj.activeEffects.filter(
-          eff => !playerHand.some(card => card.effect === eff)
-        );
+        // 3.「底蕴牌」机制：只从正位(白牌)中随机保留 1 张，防止裸奔真空期
+        const whiteCandidates = playerHand.filter(card => !card.isBlack);
+        const keptCard = whiteCandidates.length > 0 
+          ? whiteCandidates[Math.floor(Math.random() * whiteCandidates.length)] 
+          : null;
+        
+        // 移除被熔铸牌的效果（保留底蕴牌的效果）
+        for (let ci = 0; ci < playerHand.length; ci++) {
+          if (keptCard && playerHand[ci] === keptCard) continue; // 跳过底蕴牌
+          const cardEffect = playerHand[ci].effect;
+          const effectIdx = playerObj.activeEffects.indexOf(cardEffect);
+          if (effectIdx !== -1) {
+            playerObj.fastRemove(activeEffects, effectIdx);
+          }
+        }
         playerObj.recalcStats();
-        playerHand = [];
+        playerHand = keptCard ? [keptCard] : []; // 有正位牌则保留，全黑则清空
 
-        floatsArray.push(new FloatingText(playerObj.x, playerObj.y - 25, `✨ 熔铸底牌: ${bottomCardName} (${blackCount}黑) ✨`, bottomCardColor));
-
-        floatsArray.push(new FloatingText(playerObj.x, playerObj.y - 25, `✨ 底牌 Tier: ${bottomCardName} (黑牌数:${blackCount}) ✨`, bottomCardColor));
+        floatsArray.push(new FloatingText(playerObj.x, playerObj.y - 35, `✨ 熔铸底牌: ${bottomCardName} (${blackCount}黑) ✨`, bottomCardColor));
+        floatsArray.push(new FloatingText(playerObj.x, playerObj.y - 20, `[${bottomCardDesc}]`, '#22d3ee'));
+        
+        if (keptCard) {
+          floatsArray.push(new FloatingText(playerObj.x, playerObj.y - 5, `🛡️ 底蕴保留: ${keptCard.name} (⚪正位)`, keptCard.color));
+        } else {
+          floatsArray.push(new FloatingText(playerObj.x, playerObj.y - 5, `⚠️ 全逆位！无底蕴可保留！`, '#ef4444'));
+        }
 
         playShieldRestoredSound();
 
@@ -2955,7 +3451,7 @@
         // 移除旧卡的 CardEffect
         if (replacedCard.effect) {
           const idx = playerObj.activeEffects.indexOf(replacedCard.effect);
-          if (idx >= 0) playerObj.activeEffects.splice(idx, 1);
+          if (idx >= 0) playerObj.fastRemove(activeEffects, idx);
         }
 
         // 创建新卡的 CardEffect
@@ -3040,6 +3536,45 @@
         }, 150);
       }
 
+      // 二周目底牌继承
+      let ngPlusUltimateCard = null;
+
+      // 通关 — 白屏胜利画面
+      function triggerVictory() {
+        isPlaying = false;
+        saveHighScore(totalKillsCount);
+
+        gameCanvas.classList.remove('opacity-100');
+        gameCanvas.classList.add('opacity-0');
+        gameHud.classList.remove('opacity-100');
+        gameHud.classList.add('opacity-0');
+
+        const victoryScreen = document.getElementById('victory-screen');
+        const line1 = document.getElementById('victory-line1');
+        const line2 = document.getElementById('victory-line2');
+        const buttons = document.getElementById('victory-buttons');
+
+        // 重置所有元素透明度
+        line1.style.opacity = '0';
+        line2.style.opacity = '0';
+        buttons.style.opacity = '0';
+
+        // 白屏淡入（2秒）
+        setTimeout(() => {
+          victoryScreen.classList.remove('opacity-0', 'pointer-events-none');
+          victoryScreen.classList.add('opacity-100');
+        }, 100);
+
+        // 第一行文字浮现（白屏出现后 1.5 秒）
+        setTimeout(() => { line1.style.opacity = '1'; }, 2500);
+
+        // 第二行文字浮现（第一行后 3 秒）
+        setTimeout(() => { line2.style.opacity = '1'; }, 5500);
+
+        // 按钮浮现（第二行后 3 秒）
+        setTimeout(() => { buttons.style.opacity = '1'; }, 9000);
+      }
+
       let totalDrawsCount = 0;
 
       // WEIGHTED TAROT DRAW GENERATOR ("DUBI-HONEY" ALGORITHM)
@@ -3091,41 +3626,34 @@
         // Timers ticks (60fps)
         if (rawUpdateFrameCount % 60 === 0) {
           gameTimerSeconds++;
-          
-          // Balanced, engaging difficulty curve
-          let timeScale = 0;
-          if (gameTimerSeconds <= 60) {
-            // Smoothly climbs to Level 1.0 in the first minute to ease players in
-            timeScale = (gameTimerSeconds / 60) * 1.5; 
-          } else if (gameTimerSeconds <= 180) {
-            // Gradual climb to Level 4.0 over the next 2 minutes
-            timeScale = 1.5 + ((gameTimerSeconds - 60) / 120) * 2.5;
-          } else {
-            // Gentle infinite scaling past 3 minutes (adds +1 Level every 40 seconds)
-            timeScale = 4.0 + (gameTimerSeconds - 180) / 40;
-          }
-
-          // Adds +1 level for every 60 monsters slain, rewarding active players smoothly but not punishing them with too many swarms initially
-          let killScale = totalKillsCount / 60;
-
-          const computedDifficulty = 1 + Math.floor(timeScale + killScale);
-          if (computedDifficulty > activeDifficultyLevel) {
-            activeDifficultyLevel = computedDifficulty;
-            floatsArray.push(new FloatingText(playerObj.x, playerObj.y - 45, `⚠️ 异形涌潮加剧 - 敌对等级 Lvl  ${activeDifficultyLevel}!`, '#ffffff'));
-          }
         }
 
         // Generate dynamic enemies on edges progressively faster based on difficulty level
         // 死神黑牌：生成频率与上限翻倍
         const deathMod = (playerObj.deathBlackActive) ? 2 : 1;
-        const curTimerRate = Math.max(8, Math.floor((100 - activeDifficultyLevel * 10) / deathMod));
+        let curTimerRate;
+        if (currentPhase === 1 && activeDifficultyLevel <= 6) {
+          // 7岁前：保持原节奏 (100 - diff*10)
+          curTimerRate = Math.max(8, Math.floor((100 - activeDifficultyLevel * 10) / deathMod));
+        } else if (currentPhase === 1) {
+          // 7岁后：从40帧起步，每级只减4帧，下限20帧(约3只/秒)
+          curTimerRate = Math.max(20, Math.floor((40 - (activeDifficultyLevel - 6) * 4) / deathMod));
+        } else {
+          // 第二阶段：更紧凑
+          curTimerRate = Math.max(12, Math.floor((100 - activeDifficultyLevel * 6) / deathMod));
+        }
         if (rawUpdateFrameCount % curTimerRate === 0) {
           spawnSingleEnemyEdge();
         }
 
         // Spawn extra swarm enemies dynamically based on random ticks
-        const spawnOdds = (0.005 + (activeDifficultyLevel * 0.001)) * deathMod;
-        if (Math.random() < Math.min(0.08, spawnOdds)) {
+        let spawnOdds;
+        if (currentPhase === 1 && activeDifficultyLevel <= 6) {
+          spawnOdds = (0.005 + (activeDifficultyLevel * 0.001)) * deathMod; // 原值
+        } else {
+          spawnOdds = (0.003 + (activeDifficultyLevel * 0.0006)) * deathMod;
+        }
+        if (Math.random() < Math.min(0.04, spawnOdds)) {
           spawnSingleEnemyEdge();
         }
 
@@ -3135,7 +3663,7 @@
         for (let i = laserBeamsArray.length - 1; i >= 0; i--) {
           laserBeamsArray[i].update();
           if (laserBeamsArray[i].life <= 0) {
-            laserBeamsArray.splice(i, 1);
+            fastRemove(laserBeamsArray, i);
           }
         }
 
@@ -3143,7 +3671,7 @@
         for (let i = fireTrailsArray.length - 1; i >= 0; i--) {
           fireTrailsArray[i].update();
           if (fireTrailsArray[i].life <= 0) {
-            fireTrailsArray.splice(i, 1);
+            fastRemove(fireTrailsArray, i);
           }
         }
 
@@ -3159,7 +3687,7 @@
 
           // Standard limits bounds check
           if (bullet.life <= 0) {
-            bulletsArray.splice(i, 1);
+            fastRemove(bulletsArray, i);
             continue;
           }
 
@@ -3168,12 +3696,14 @@
           for (let j = enemiesArray.length - 1; j >= 0; j--) {
             const enemy = enemiesArray[j];
             // Circle/Point distance overlaps Check
-            const dist = Math.hypot(enemy.x - bullet.x, enemy.y - bullet.y);
+            const distSq = (enemy.x - bullet.x)*(enemy.x - bullet.x) + (enemy.y - bullet.y)*(enemy.y - bullet.y);
             const collisionDist = bBoundValue(bullet, enemy);
             
-            if (dist < collisionDist) {
-              // Enemy hurt
-              enemy.hp -= bullet.damage;
+            if (distSq < (collisionDist)*(collisionDist)) {
+              // Enemy hurt — 重压Boss虚脱期承受3倍伤害
+              let dmgMult = 1;
+              if (enemy.type === 'burden' && enemy.bossPhase === 'exhaust') dmgMult = 3;
+              enemy.hp -= bullet.damage * dmgMult;
               enemy.hitFlashDuration = 3;
               screenShakeIntensity = Math.min(25, screenShakeIntensity + 1.5);
 
@@ -3198,16 +3728,104 @@
 
               // Check if dead
               if (enemy.hp <= 0) {
-                enemiesArray.splice(j, 1);
+                fastRemove(enemiesArray, j);
                 
                 totalKillsCount++;
-                currentKillTierCounter++;
+                
+                // Phase transitions
+                if (enemy.type === 'academic' && currentPhase === 1) {
+                  bossDefeatedPhase1 = true;
+                  currentPhase = 2;
+                  playerAge = 13;
+                  currentExp = 0;
+                  nextExpThreshold = Math.floor(nextExpThreshold * 1.25);
+                  triggerRealtimeAutoDraw();
+                  floatsArray.push(new FloatingText(playerObj.x, playerObj.y - 85, `🎓 克服学业！踏入青年期！(AGE: 13)`, '#3b82f6'));
+                  playExplosionSound(true);
+                }
+
+                // 青年期Boss击杀检测：双子星都死了才进入中年期
+                if ((enemy.type === 'academic_phase2' || enemy.type === 'career') && currentPhase === 2) {
+                  const otherBossAlive = enemiesArray.some(e => e.type === 'academic_phase2' || e.type === 'career');
+                  if (!otherBossAlive) {
+                    bossDefeatedPhase2 = true;
+                    currentPhase = 3;
+                    playerAge = 36;
+                    currentExp = 0;
+                    nextExpThreshold = Math.floor(nextExpThreshold * 1.25);
+                    triggerRealtimeAutoDraw();
+                    floatsArray.push(new FloatingText(playerObj.x, playerObj.y - 85, `🏢 踏入中年期！生活重担来袭！(AGE: 36)`, '#ea580c'));
+                    playExplosionSound(true);
+                  }
+                }
+
+                // 中年Boss击杀检测：重压死了进入老年期
+                if (enemy.type === 'burden' && currentPhase === 3) {
+                  bossDefeatedPhase3 = true;
+                  currentPhase = 4;
+                  playerAge = 56;
+                  currentExp = 0;
+                  nextExpThreshold = Math.floor(nextExpThreshold * 1.25);
+                  triggerRealtimeAutoDraw();
+                  floatsArray.push(new FloatingText(playerObj.x, playerObj.y - 85, `🌿 踏入老年期！岁月不饶人！(AGE: 56)`, '#7c3aed'));
+                  playExplosionSound(true);
+                }
+
+                // 老年Boss击杀检测：病痛死了 → 通关！
+                if (enemy.type === 'sickness' && currentPhase === 4) {
+                  // 保存当前最强的底牌用于二周目
+                  if (strategicUltimateCards.length > 0) {
+                    ngPlusUltimateCard = strategicUltimateCards[strategicUltimateCards.length - 1];
+                  }
+                  setTimeout(() => triggerVictory(), 0);
+                  return; // 停止帧循环
+                }
+
+                // 击杀即获取经验
+                if ((currentPhase === 1 && playerAge < 12) || (currentPhase === 2 && playerAge < 35) || (currentPhase === 3 && playerAge < 55) || (currentPhase === 4 && playerAge < 70)) {
+                let expGain = Math.ceil(enemy.points * 1.4); // 整体经验倍率 1.4 倍
+                if (currentPhase === 1) expGain = Math.ceil(expGain * 1.1); // 幼年期经验获取再提升 10%
+                currentExp += expGain;
+                  if (currentExp >= nextExpThreshold) {
+                    currentExp = 0;
+                    playerAge++;
+                    activeDifficultyLevel++;
+                    floatsArray.push(new FloatingText(playerObj.x, playerObj.y - 45, `✨ 长大一岁！当前年龄: ${playerAge} 岁！`, '#3b82f6'));
+                    
+                    if ((currentPhase === 1 && playerAge < 12) || (currentPhase === 2 && playerAge < 35) || (currentPhase === 3 && playerAge < 55) || (currentPhase === 4 && playerAge < 70)) {
+                      nextExpThreshold = Math.floor(nextExpThreshold * 1.25);
+                      triggerRealtimeAutoDraw(); 
+                    } else if (currentPhase === 1 && playerAge === 12 && !bossDefeatedPhase1) {
+                      currentExp = nextExpThreshold;
+                      if (!enemiesArray.some(e => e.type === 'academic')) {
+                        floatsArray.push(new FloatingText(playerObj.x, playerObj.y - 65, `⚠️ 第一阶段最终考验：【学业】降临 ⚠️`, '#ef4444'));
+                        spawnBoss('academic');
+                      }
+                    } else if (currentPhase === 2 && playerAge === 35 && !bossSpawnedPhase2) {
+                      currentExp = nextExpThreshold;
+                      bossSpawnedPhase2 = true;
+                      floatsArray.push(new FloatingText(playerObj.x, playerObj.y - 65, `⚠️ 青年期重压：双子星【学业】与【事业】！`, '#ef4444'));
+                      spawnBoss('academic_phase2');
+                      spawnBoss('career');
+                    } else if (currentPhase === 3 && playerAge === 55 && !bossSpawnedPhase3) {
+                      currentExp = nextExpThreshold;
+                      bossSpawnedPhase3 = true;
+                      floatsArray.push(new FloatingText(playerObj.x, playerObj.y - 65, `⚠️ 中年最终考验：【重压】降临！`, '#dc2626'));
+                      spawnBoss('burden');
+                    } else if (currentPhase === 4 && playerAge === 70 && !bossSpawnedPhase4) {
+                      currentExp = nextExpThreshold;
+                      bossSpawnedPhase4 = true;
+                      floatsArray.push(new FloatingText(playerObj.x, playerObj.y - 65, `⚠️ 老年最终考验：【病痛】降临！`, '#7c3aed'));
+                      spawnBoss('sickness');
+                    }
+                  }
+                }
                 
                 // Screen shake boost on kill
-                screenShakeIntensity = Math.min(30, screenShakeIntensity + (enemy.type === 'behemoth' ? 14 : 4.5));
+                screenShakeIntensity = Math.min(30, screenShakeIntensity + (enemy.type === 'academic' ? 25 : 4.5));
 
                 // Spawn death neon debris splinters
-                const splashCount = enemy.type === 'behemoth' ? 45 : (enemy.type === 'ripper' ? 22 : 14);
+                const splashCount = enemy.type === 'academic' ? 60 : 20;
                 for (let kSplash = 0; kSplash < splashCount; kSplash++) {
                   const splashAngle = Math.random() * Math.PI * 2;
                   const splashSpeed = Math.random() * 5.5 + 2.0;
@@ -3215,18 +3833,11 @@
                 }
 
                 // Audio & points feedback elements
-                playExplosionSound(enemy.type === 'behemoth');
+                playExplosionSound(enemy.type === 'academic');
                 
                 // 死神卡牌：击杀爆炸概率检查 (CardEffect 系统)
                 if (playerObj.deathExplosionChance > 0 && Math.random() < playerObj.deathExplosionChance) {
                   triggerCorpseExplosion(enemy.x, enemy.y, playerObj.deathExplosionScale);
-                }
-
-                // Check card draw threshold - Real-time auto draw with progressive curve!
-                if (currentKillTierCounter >= nextKillTierThreshold) {
-                  triggerRealtimeAutoDraw();
-                  // Increase next threshold progressively (much smoother, gentler curve!)
-                  nextKillTierThreshold = Math.floor(8 + totalDrawsCount * 2.5);
                 }
               }
 
@@ -3240,7 +3851,7 @@
           }
 
           if (hitEnemy) {
-            bulletsArray.splice(i, 1);
+            fastRemove(bulletsArray, i);
           }
         }
 
@@ -3267,6 +3878,52 @@
             if (d < radiusOfExplosion) {
               enemy.hp -= damageValue;
               enemy.hitFlashDuration = 3;
+            }
+          }
+        }
+
+        // ===== 疾病精英怪弹幕系统：更新、渲染、碰撞 =====
+        for (let i = enemyBulletsArray.length - 1; i >= 0; i--) {
+          const eb = enemyBulletsArray[i];
+          eb.x += eb.vx;
+          eb.y += eb.vy;
+          eb.life--;
+
+          // 超出屏幕或生命耗尽
+          if (eb.life <= 0 || eb.x < -20 || eb.x > GAME_WIDTH + 20 || eb.y < -20 || eb.y > GAME_HEIGHT + 20) {
+            fastRemove(enemyBulletsArray, i);
+            continue;
+          }
+
+          // 渲染：小型有色弹丸 + 文字标识
+          ctx.save();
+          ctx.fillStyle = eb.color;
+          ctx.globalAlpha = 0.85;
+          ctx.beginPath();
+          ctx.arc(eb.x, eb.y, eb.size, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.fillStyle = '#ffffff';
+          ctx.font = "bold 7px 'Courier Prime', monospace";
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(eb.text, eb.x, eb.y);
+          ctx.restore();
+
+          // 碰撞检测：与玩家
+          if (playerObj && playerObj.ultimateInvincibleFrames <= 0) {
+            const dToPlayer = Math.hypot(eb.x - playerObj.x, eb.y - playerObj.y);
+            if (dToPlayer < playerObj.radius + eb.size) {
+              playerObj.hp -= 1; // 低伤害
+              playerObj.ultimateInvincibleFrames = 45; // 短暂无敌
+              floatsArray.push(new FloatingText(playerObj.x, playerObj.y - 30, `🦠 疾病侵蚀！HP-1`, eb.color));
+              screenShakeIntensity = Math.min(15, screenShakeIntensity + 8);
+              playExplosionSound(false);
+              fastRemove(enemyBulletsArray, i);
+
+              if (playerObj.hp <= 0) {
+                triggerGameOver();
+                return;
+              }
             }
           }
         }
@@ -3298,7 +3955,7 @@
                 if (ally.hp <= 0) {
                   const label = ally.type === 'lovers' ? "💘 恋人契约消逝" : "⛪ 信徒殉道";
                   floatsArray.push(new FloatingText(ally.x, ally.y, label, ally.color));
-                  alliesArray.splice(k, 1);
+                  fastRemove(alliesArray, k);
                 }
               }
             }
@@ -3312,6 +3969,26 @@
             // Skip if currently in invincibility states
             if (playerObj.ultimateInvincibleFrames > 0) {
               continue;
+            }
+
+            // 精英怪的特殊判定：低伤害+减速Debuff
+            if (enemy.type === 'anxiety' || enemy.type === 'depression') {
+               playerObj.hp -= 1;
+               playerObj.slowDebuffFrames = 180; // 3 秒减速
+               playerObj.ultimateInvincibleFrames = 45; 
+               floatsArray.push(new FloatingText(playerObj.x, playerObj.y - 30, `🐌 精神内耗! [移速骤降]`, '#a855f7'));
+               screenShakeIntensity = 20;
+               playExplosionSound(false);
+               
+               if (playerObj.hp <= 0) {
+                 triggerGameOver();
+                 return;
+               }
+               // 精英怪弹开
+               const pushAngle = Math.atan2(enemy.y - playerObj.y, enemy.x - playerObj.x);
+               enemy.x += Math.cos(pushAngle) * 150;
+               enemy.y += Math.sin(pushAngle) * 150;
+               continue; // 结束本次碰撞检测，不走普通怪扣血
             }
 
             // 直接扣血
@@ -3340,7 +4017,7 @@
         for (let i = shockwavesArray.length - 1; i >= 0; i--) {
           shockwavesArray[i].update();
           if (shockwavesArray[i].life <= 0) {
-            shockwavesArray.splice(i, 1);
+            fastRemove(shockwavesArray, i);
           }
         }
 
@@ -3348,7 +4025,7 @@
         for (let i = blackVorticesArray.length - 1; i >= 0; i--) {
           blackVorticesArray[i].update();
           if (blackVorticesArray[i].life <= 0) {
-            blackVorticesArray.splice(i, 1);
+            fastRemove(blackVorticesArray, i);
           }
         }
 
@@ -3356,15 +4033,17 @@
         for (let i = particlesArray.length - 1; i >= 0; i--) {
           particlesArray[i].update();
           if (particlesArray[i].life <= 0) {
-            particlesArray.splice(i, 1);
+            fastRemove(particlesArray, i);
           }
         }
+
+
 
         // Floats text updates
         for (let i = floatsArray.length - 1; i >= 0; i--) {
           floatsArray[i].update();
           if (floatsArray[i].life <= 0) {
-            floatsArray.splice(i, 1);
+            fastRemove(floatsArray, i);
           }
         }
 
@@ -3443,6 +4122,11 @@
           vortex.draw();
         }
 
+        // Draw ExpOrbs
+        for (let orb of expOrbsArray) {
+          orb.draw();
+        }
+
         for (let particle of particlesArray) {
           particle.draw();
         }
@@ -3481,7 +4165,7 @@
           ctx.lineWidth = 3;
           ctx.globalAlpha = 0.4;
           for (const line of scribbleLinesCache) {
-            const dist = Math.hypot(line.x - playerObj.x, line.y - playerObj.y);
+            const distSq = (line.x - playerObj.x)*(line.x - playerObj.x) + (line.y - playerObj.y)*(line.y - playerObj.y);
             if (dist > sightR * 0.7) {
               ctx.beginPath();
               ctx.moveTo(line.x, line.y);
@@ -3522,6 +4206,56 @@
           startScreen.classList.add('opacity-100');
           loadHighScore();
         }, 150);
+      });
+
+      // 通关画面按钮
+      const btnVictoryMenu = document.getElementById('btn-victory-menu');
+      const btnVictoryNgPlus = document.getElementById('btn-victory-ngplus');
+      const victoryScreen = document.getElementById('victory-screen');
+
+      btnVictoryMenu.addEventListener('click', () => {
+        initAudio();
+        
+        gameCanvas.classList.remove('opacity-100');
+        gameCanvas.classList.add('opacity-0');
+        gameHud.classList.remove('opacity-100');
+        gameHud.classList.add('opacity-0');
+        
+        victoryScreen.classList.remove('opacity-100');
+        victoryScreen.classList.add('opacity-0', 'pointer-events-none');
+        
+        ngPlusUltimateCard = null; // 回主菜单不继承底牌
+        
+        setTimeout(() => {
+          startScreen.classList.remove('opacity-0', 'pointer-events-none');
+          startScreen.classList.add('opacity-100');
+          loadHighScore();
+        }, 150);
+      });
+
+      btnVictoryNgPlus.addEventListener('click', () => {
+        victoryScreen.classList.remove('opacity-100');
+        victoryScreen.classList.add('opacity-0', 'pointer-events-none');
+        
+        // 保留底牌引用，initGame 会使用它
+        initGame();
+        
+        // 如果有底牌，在新游戏开始后注入
+        if (ngPlusUltimateCard && playerObj) {
+          strategicUltimateCards.push(ngPlusUltimateCard);
+          
+          // 激活底牌的效果
+          const card = ngPlusUltimateCard;
+          playerObj.activeEffects.push(card);
+          
+          floatsArray.push(new FloatingText(playerObj.x, playerObj.y - 60, `🌟 二周目继承底牌：${card.name}`, '#c084fc'));
+          
+          // 刷新底牌UI
+          if (typeof updateUltimateUI === 'function') updateUltimateUI();
+          if (typeof recalcStats === 'function') recalcStats();
+          
+          ngPlusUltimateCard = null; // 用完清除
+        }
       });
 
       // Warm up application loop
