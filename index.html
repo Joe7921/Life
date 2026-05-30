@@ -103,7 +103,7 @@
   <body class="bg-[#f4f2ec] text-stone-900 min-h-screen overflow-hidden font-arcade select-none antialiased flex flex-col items-center justify-center">
 
     <!-- Console framing container representing chalkboard slate layout -->
-    <div class="relative w-full max-w-5xl aspect-video mx-auto px-4 md:px-0 flex flex-col justify-center items-center">
+    <div class="relative w-full max-w-[95vw] xl:max-w-7xl aspect-video mx-auto px-4 md:px-0 flex flex-col justify-center items-center">
       
       <!-- Bezel outline of the screen - simplified drawing cabinet with chalkborder -->
       <div class="relative w-full h-full bg-[#fafaf7] border-4 border-stone-900 rounded-3xl overflow-hidden shadow-[8px_8px_0px_#1c1917] flex flex-col justify-center items-center">
@@ -575,137 +575,247 @@
       // Audio activation triggers
       btnSoundToggle.addEventListener('click', toggleSound);
 
-      // 3. TAROT SYSTEM DEFINITION (11 Cards according to SPEC)
-      const TAROT_CARDS_POOL = [
+      // =====================================================================
+      // 3b. 核心卡牌矩阵 (CARD DICTIONARY) — 7 张战术手牌，各含白/黑牌变体
+      // =====================================================================
+      const CARD_DICTIONARY = [
         {
-          id: 'magician',
-          name: '【魔术师】',
-          roman: 'I',
-          tag: 'THE MAGICIAN',
-          desc: '【多重施法】：开火 20%*(卡牌等级) 概率额外分裂一发高威能跟踪追踪弹。',
-          color: '#2563eb',
-          shadowClass: 'chalk-card',
-          tier: 'Rare',
-          tags: ['手绘系']
+          id: 'fool', name: '【愚者】', roman: '0', tag: 'THE FOOL',
+          color: '#6366f1', tags: ['手绘系'],
+          white: { desc: '基础移速提升 15%。', tier: 'Common' },
+          black: { desc: '移速飙升 150%。【反噬】摩擦力归零，冰面滑行极难刹车。', tier: 'Cursed' }
         },
         {
-          id: 'death',
-          name: '【死神】',
-          roman: 'XIII',
-          tag: 'DEATH',
-          desc: '【尸爆】：击杀怪物后在原位触发威力范围超大的连锁烈焰尸爆。',
-          color: '#dc2626',
-          shadowClass: 'chalk-card',
-          tier: 'Rare',
-          tags: ['手绘系']
+          id: 'magician', name: '【魔术师】', roman: 'I', tag: 'THE MAGICIAN',
+          color: '#2563eb', tags: ['手绘系'],
+          white: { desc: '射击频率提升 20%。', tier: 'Common' },
+          black: { desc: '射速暴增 400%，扇形弹幕。【反噬】注销自动索敌，正弦波漂移，射程减半。', tier: 'Cursed' }
         },
         {
-          id: 'emperor',
-          name: '【皇帝】',
-          roman: 'IV',
-          tag: 'THE EMPEROR',
-          desc: '【重力坍锁】：在机体周围形成力阻磁场，令进入其中的敌方减慢移动速度 40%。',
-          color: '#059669',
-          shadowClass: 'chalk-card',
-          tier: 'Common',
-          tags: ['手绘系']
+          id: 'emperor', name: '【皇帝】', roman: 'IV', tag: 'THE EMPEROR',
+          color: '#059669', tags: ['手绘系'],
+          white: { desc: '子弹体积 +20%，伤害 +20%。', tier: 'Common' },
+          black: { desc: '巨大实心球，伤害 ×5。【反噬】移速永久 -50%。', tier: 'Cursed' }
         },
         {
-          id: 'world',
-          name: '【世界】',
-          roman: 'XXI',
-          tag: 'THE WORLD',
-          desc: '【边界穿梭】：子弹飞出屏幕绝不消失，可并穿梭而过从对侧平行折返。',
-          color: '#a21caf',
-          shadowClass: 'chalk-card',
-          tier: 'Common',
-          tags: ['手绘系']
+          id: 'lovers', name: '【恋人】', roman: 'VI', tag: 'THE LOVERS',
+          color: '#db2777', tags: ['手绘系'],
+          white: { desc: '召唤 1 个公转友军自动开火。', tier: 'Rare' },
+          black: { desc: '瞬间召唤 4 个狂暴友军。【反噬】本体丧失开火能力。', tier: 'Cursed' }
         },
         {
-          id: 'priestess',
-          name: '【女祭司】',
-          roman: 'II',
-          tag: 'THE HIGH PRIESTESS',
-          desc: '【信仰灵盾】：抵挡一次触碰即死的灵能护盾。吸收伤害破损后在一定时间内可重聚充能。',
-          color: '#16a34a',
-          shadowClass: 'chalk-card',
-          tier: 'Common',
-          tags: ['手绘系']
+          id: 'chariot', name: '【战车】', roman: 'VII', tag: 'THE CHARIOT',
+          color: '#ea580c', tags: ['手绘系'],
+          white: { desc: '子弹速度 +30%，射程加远。', tier: 'Common' },
+          black: { desc: '子弹极强击退。【反噬】只能朝 WASD 方向射击，封杀风筝流。', tier: 'Cursed' }
         },
         {
-          id: 'devil',
-          name: '【恶魔】',
-          roman: 'XV',
-          tag: 'THE DEVIL',
-          desc: '【鲜血契约】：极致杀伤！强令子弹伤害与体积巨幅翻倍；狂躁代价：外包视距受阴煞黑雾阻截缩减。',
-          color: '#be123c',
-          shadowClass: 'chalk-card',
-          tier: 'Cursed',
-          tags: ['手绘系']
+          id: 'death', name: '【死神】', roman: 'XIII', tag: 'DEATH',
+          color: '#dc2626', tags: ['手绘系'],
+          white: { desc: '击杀 15% 概率爆开致死墨迹。', tier: 'Rare' },
+          black: { desc: '击杀 100% 核爆。【反噬】怪物生成频率与上限翻倍。', tier: 'Cursed' }
         },
         {
-          id: 'wheel',
-          name: '【命运之轮】',
-          roman: 'X',
-          tag: 'WHEEL OF FORTUNE',
-          desc: '【正弦流弹】：使开火射速进入极具律动的波动正弦振荡，忽如薄雾忽如骤暴。',
-          color: '#d97706',
-          shadowClass: 'chalk-card',
-          tier: 'Common',
-          tags: ['手绘系']
-        },
-        {
-          id: 'lovers',
-          name: '【恋人】',
-          roman: 'VI',
-          tag: 'THE LOVERS',
-          desc: '【灵魂伴侣】：召唤 1 个围绕自身公转并独立开火的伴侣星灵（3血点），伤害射速极大。重复获取直接治愈伴侣并永久强化其 50% 基础伤害。',
-          color: '#db2777',
-          shadowClass: 'chalk-card',
-          tier: 'Rare',
-          tags: ['手绘系']
-        },
-        {
-          id: 'hierophant',
-          name: '【教皇】',
-          roman: 'V',
-          tag: 'THE HIEROPHANT',
-          desc: '【狂热信徒】：就地在玩家周围随机安插 3 个固定在原地的狙击信徒（1血点，遇袭瞬毁），全屏覆盖狙击。重复获取多召唤 2 个。',
-          color: '#ca8a04',
-          shadowClass: 'chalk-card',
-          tier: 'Rare',
-          tags: ['手绘系']
-        },
-        {
-          id: 'chariot_rev',
-          name: '【战车·逆位】',
-          roman: 'VII',
-          tag: 'CHARIOT REVERSED',
-          desc: '【狂乱突击】：疯狂暴增 300% 的基础子弹杀伤威能，子弹体积强制膨胀 100%；反噬代价：机体核心基础移动速度永久腰斩 50%。',
-          color: '#ea580c',
-          shadowClass: 'chalk-card',
-          tier: 'Cursed',
-          tags: ['手绘系']
-        },
-        {
-          id: 'tower_right',
-          name: '【高塔·正位】',
-          roman: 'XVI',
-          tag: 'THE TOWER',
-          desc: '【末日重炮】：机体每隔 5 秒自动全屏无死角喷涌 360° 核能超强弹幕圈扫荡群魔；神魔代价：双眸黑化，视距视野永久削减 30%。',
-          color: '#4f46e5',
-          shadowClass: 'chalk-card',
-          tier: 'Cursed',
-          tags: ['手绘系']
+          id: 'moon', name: '【月亮】', roman: 'XVIII', tag: 'THE MOON',
+          color: '#a855f7', tags: ['手绘系'],
+          white: { desc: '子弹穿透 +1。', tier: 'Common' },
+          black: { desc: '绝对追踪 + 无限穿透。【反噬】视野压缩至 150px，外围乱线涂满。', tier: 'Cursed' }
         }
       ];
+
+      // =====================================================================
+      // 3c. 面向对象卡牌效果管理系统 (OOP CardEffect System)
+      //     每个 Effect 子类深度改写物理引擎与渲染管线参数
+      // =====================================================================
+      class CardEffect {
+        constructor(cardId, isBlack) { this.cardId = cardId; this.isBlack = isBlack; }
+        applyStats(p) { /* 由子类重写 */ }
+      }
+
+      class FoolEffect extends CardEffect {
+        applyStats(p) {
+          if (this.isBlack) {
+            p.speedMultiplier *= 2.5;       // +150% 移速
+            p.friction = 0.02;              // 【物理引擎】player.friction 归零 → 冰面惯性滑行
+          } else {
+            p.speedMultiplier *= 1.15;      // +15% 移速
+          }
+        }
+      }
+
+      class MagicianEffect extends CardEffect {
+        applyStats(p) {
+          p.magicianCount++;
+          if (this.isBlack) {
+            p.fireRateMultiplier *= 4.0;    // +400% 射速
+            p.bulletFanCount = 3;           // 扇形弹幕
+            p.bulletSineWave = true;        // 正弦波漂移
+            p.useAutoAim = false;           // 注销自动索敌
+            p.bulletRangeMultiplier *= 0.5; // 射程减半
+          } else {
+            p.fireRateMultiplier *= 1.2;    // +20% 射速
+          }
+        }
+      }
+
+      class EmperorEffect extends CardEffect {
+        applyStats(p) {
+          p.emperorCount++;
+          if (this.isBlack) {
+            p.damageMultiplier *= 5.0;      // 伤害翻 5 倍
+            p.bulletSizeMultiplier *= 4.0;  // 巨大实心球
+            p.bulletDrawAsBall = true;      // 【渲染管线】改为实心球渲染模式
+          } else {
+            p.damageMultiplier *= 1.2;      // +20% 伤害
+            p.bulletSizeMultiplier *= 1.2;  // +20% 体积
+          }
+        }
+      }
+
+      class LoversEffect extends CardEffect {
+        applyStats(p) {
+          p.loversCount++;
+          if (this.isBlack) {
+            p.canShoot = false;             // 【核心】canShoot 变量锁死为 false
+          }
+        }
+      }
+
+      class ChariotEffect extends CardEffect {
+        applyStats(p) {
+          if (this.isBlack) {
+            p.bulletKnockback = 80;         // 【物理引擎】极强击退效果
+            p.forceWASDDirection = true;    // 【碰撞逻辑】重写坐标边界 → WASD 方向锁定射击
+          } else {
+            p.bulletSpeedMultiplier *= 1.3; // +30% 弹速
+            p.bulletRangeMultiplier *= 1.3; // 射程加远
+          }
+        }
+      }
+
+      class DeathEffect extends CardEffect {
+        applyStats(p) {
+          if (this.isBlack) {
+            p.deathExplosionChance = 1.0;   // 100% 触发大范围核爆
+            p.deathExplosionScale = 3.0;    // 连环核爆范围 ×3
+            p.deathBlackActive = true;      // 【AI 导演】怪物生成频率与上限翻倍
+          } else {
+            p.deathExplosionChance = Math.min(1.0, p.deathExplosionChance + 0.15);
+          }
+        }
+      }
+
+      class MoonEffect extends CardEffect {
+        applyStats(p) {
+          if (this.isBlack) {
+            p.bulletHoming = true;          // 【弹道引擎】绝对追踪
+            p.infinitePierce = true;        // 无限穿透
+            p.moonBlackActive = true;       // 【Canvas 遮罩图层】视野压缩渲染
+          } else {
+            p.pierceBonus += 1;             // 额外穿透 +1
+          }
+        }
+      }
+
+      // 效果工厂 — 根据卡牌 ID 实例化对应 Effect 子类
+      function createCardEffect(cardId, isBlack) {
+        const map = {
+          'fool': FoolEffect, 'magician': MagicianEffect,
+          'emperor': EmperorEffect, 'lovers': LoversEffect,
+          'chariot': ChariotEffect, 'death': DeathEffect, 'moon': MoonEffect
+        };
+        const Cls = map[cardId] || CardEffect;
+        return new Cls(cardId, isBlack);
+      }
+
+      // =====================================================================
+      // 3d. 黑色漩涡实体 (星辰底牌 · The Star)
+      //     每 10 秒在场上随机位置生成，持续 3 秒引力吸附绞杀怪物
+      // =====================================================================
+      class BlackVortex {
+        constructor(x, y) {
+          this.x = x;
+          this.y = y;
+          this.radius = 0;
+          this.maxRadius = 120;
+          this.life = 180;
+          this.maxLife = 180;
+          this.pullStrength = 3.0;
+          this.damage = 2.5;
+        }
+        update() {
+          this.life--;
+          const elapsed = this.maxLife - this.life;
+          if (elapsed < 30) {
+            this.radius = this.maxRadius * (elapsed / 30);
+          } else if (this.life < 30) {
+            this.radius = this.maxRadius * (this.life / 30);
+          } else {
+            this.radius = this.maxRadius;
+          }
+          for (const enemy of enemiesArray) {
+            const dx = this.x - enemy.x;
+            const dy = this.y - enemy.y;
+            const dist = Math.hypot(dx, dy);
+            if (dist < this.maxRadius * 1.5 && dist > 1) {
+              const force = this.pullStrength * (1 - dist / (this.maxRadius * 1.5));
+              enemy.x += (dx / dist) * force;
+              enemy.y += (dy / dist) * force;
+              if (dist < this.radius * 0.5) {
+                enemy.hp -= this.damage;
+                enemy.hitFlashDuration = 2;
+              }
+            }
+          }
+        }
+        draw() {
+          ctx.save();
+          const alpha = Math.min(1, this.life / 30, (this.maxLife - this.life + 1) / 30);
+          ctx.globalAlpha = alpha * 0.8;
+          ctx.strokeStyle = '#1c1917';
+          ctx.lineWidth = 4;
+          ctx.setLineDash([8, 8]);
+          const spin = rawUpdateFrameCount * 0.08;
+          ctx.beginPath();
+          ctx.arc(this.x, this.y, this.radius, spin, spin + Math.PI * 1.8);
+          ctx.stroke();
+          ctx.fillStyle = '#0a0a0a';
+          ctx.globalAlpha = alpha * 0.5;
+          ctx.setLineDash([]);
+          ctx.beginPath();
+          ctx.arc(this.x, this.y, this.radius * 0.3, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.strokeStyle = '#4b5563';
+          ctx.lineWidth = 2;
+          ctx.setLineDash([4, 6]);
+          ctx.globalAlpha = alpha * 0.6;
+          ctx.beginPath();
+          ctx.arc(this.x, this.y, this.radius * 0.6, -spin * 1.2, -spin * 1.2 + Math.PI * 1.5);
+          ctx.stroke();
+          ctx.restore();
+        }
+      }
 
       // 4. GAME SYSTEM PARAMETERS & ENGINE INSTANCES
       const GAME_WIDTH = 1200;
       const GAME_HEIGHT = 675;
       const ctx = gameCanvas.getContext('2d');
-      gameCanvas.width = GAME_WIDTH;
-      gameCanvas.height = GAME_HEIGHT;
+      
+      function resizeCanvas() {
+        const dpr = window.devicePixelRatio || 1;
+        const rect = gameCanvas.getBoundingClientRect();
+        
+        // Ensure physical buffer size matches bounding dimensions multiplied by devicePixelRatio
+        gameCanvas.width = rect.width * dpr;
+        gameCanvas.height = rect.height * dpr;
+        
+        // Reset scale and apply coordinate mapping (logical coordinates mapped to physical pixels)
+        ctx.resetTransform();
+        ctx.scale((rect.width * dpr) / GAME_WIDTH, (rect.height * dpr) / GAME_HEIGHT);
+      }
+      
+      window.addEventListener('resize', resizeCanvas);
+      setTimeout(resizeCanvas, 100);
 
       let isPlaying = false;
       let gameTimerSeconds = 0;
@@ -732,6 +842,8 @@
       let floatsArray = [];
       let alliesArray = [];
       let shockwavesArray = [];
+      let blackVorticesArray = [];
+      let scribbleLinesCache = null;
 
       // Last drawing state for pause backdrop continuity
       let isGamePausedForDivination = false;
@@ -996,7 +1108,13 @@
           this.life = wrapActive ? maxWrapLife : 100; // in frame cycles
           this.maxLife = this.life;
           this.isHoming = isHoming;
-          this.pierceCount = 1; // default pierce level
+          this.pierceCount = 1;
+          // ===== 新卡牌系统属性 =====
+          this.age = 0;               // 帧龄（正弦波漂移用）
+          this.baseAngle = angle;      // 原始发射角度
+          this.sineWave = false;       // 魔术师黑牌：正弦波弹道
+          this.knockback = 0;          // 战车黑牌：击退力度
+          this.drawAsBall = false;     // 皇帝黑牌：实心球渲染模式
         }
 
         update() {
@@ -1031,6 +1149,16 @@
 
           this.x += this.vx;
           this.y += this.vy;
+          this.age++;
+
+          // 魔术师黑牌：正弦波弹道横向漂移
+          if (this.sineWave) {
+            const perpX = -Math.sin(this.baseAngle);
+            const perpY = Math.cos(this.baseAngle);
+            const drift = Math.sin(this.age * 0.18) * 2.5;
+            this.x += perpX * drift;
+            this.y += perpY * drift;
+          }
 
           // Spawn tiny fluorescent particle trails for extreme visuals (gorgeous gamefeel!)
           if (rawUpdateFrameCount % 2 === 0) {
@@ -1065,6 +1193,23 @@
         draw() {
           ctx.save();
           ctx.shadowBlur = 0;
+
+          // 皇帝黑牌：巨大实心球渲染模式
+          if (this.drawAsBall) {
+            const ballR = Math.max(8, this.size * 2.5);
+            ctx.fillStyle = '#1c1917';
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, ballR, 0, Math.PI * 2);
+            ctx.fill();
+            // 球体高光
+            ctx.fillStyle = 'rgba(255,255,255,0.15)';
+            ctx.beginPath();
+            ctx.arc(this.x - ballR * 0.25, this.y - ballR * 0.25, ballR * 0.35, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.restore();
+            return;
+          }
+
           ctx.lineWidth = Math.max(3.5, this.size * 2);
           ctx.lineCap = 'round';
           ctx.strokeStyle = this.color || '#1c1917';
@@ -1153,8 +1298,8 @@
 
           // Emperor Slowness aura check: speed drops by 40%
           let activeSpeed = this.speed;
-          if (playerObj && playerObj.buffs.emperor > 0) {
-            const auraRadius = 100 + 40 * (playerObj.buffs.emperor - 1);
+          if (playerObj && playerObj.emperorCount > 0) {
+            const auraRadius = 100 + 40 * (playerObj.emperorCount - 1);
             if (d < auraRadius) {
               activeSpeed = this.speed * 0.60; // 40% reduction
             }
@@ -1410,8 +1555,8 @@
             const angle = Math.atan2(closestEnemy.y - this.y, closestEnemy.x - this.x);
             // 50% taller than basic player values (5.0 dmg): so base of 7.5
             // Drawing duplicate cards permanently boost companion damage
-            const lv = playerObj ? playerObj.buffs.lovers : 1;
-            const dmgScaling = 7.5 * (1 + (lv - 1) * 0.50);
+            const lv = playerObj ? playerObj.loversCount : 1;
+            const dmgScaling = 7.5 * (1 + (Math.max(1, lv) - 1) * 0.50);
             
             // Firing a pink high damage bullet
             bulletsArray.push(new Bullet(this.x, this.y, angle, 8.0, dmgScaling, 5.5, false, 0, false, '#f472b6'));
@@ -1508,131 +1653,111 @@
         constructor(x, y) {
           this.x = x;
           this.y = y;
-          this.radius = 15;
+          this.radius = 18;
           this.baseSpeed = 3.6;
           
           this.maxHp = 3;
           this.hp = 3;
-          this.ultimateInvincibleFrames = 0; // Ticks down to 0
-          this.judgementTimer = 0;           // Automation frequency timer for laser beam triggers
-          
-          // Managed buffs stack dictionary (Requested)
-          this.buffs = {
-            magician: 0,
-            death: 0,
-            emperor: 0,
-            world: 0,
-            priestess: 0,
-            devil: 0,
-            wheel: 0,
-            lovers: 0,
-            hierophant: 0,
-            chariot_rev: 0,
-            tower_right: 0
-          };
+          this.ultimateInvincibleFrames = 0;
 
-          // High Priestess shield metrics
+          // ===== 物理引擎属性 (Physics Engine) =====
+          this.velocityX = 0;
+          this.velocityY = 0;
+          this.friction = 1.0;              // 1.0 = 即时响应, 0.02 = 冰面滑行 (愚者黑牌)
+
+          // ===== 卡牌效果属性 (由 recalcStats 从 activeEffects 计算) =====
+          this.speedMultiplier = 1.0;
+          this.permanentSpeedMod = 1.0;     // 永久移速修正 (皇帝黑牌，不受 recalc 重置)
+          this.fireRateMultiplier = 1.0;
+          this.damageMultiplier = 1.0;
+          this.bulletSizeMultiplier = 1.0;
+          this.bulletSpeedMultiplier = 1.0;
+          this.bulletRangeMultiplier = 1.0;
+          this.bulletKnockback = 0;         // 击退力度 (战车黑牌)
+          this.bulletFanCount = 1;          // 扇形弹幕数量 (魔术师黑牌)
+          this.bulletSineWave = false;      // 正弦波漂移 (魔术师黑牌)
+          this.bulletDrawAsBall = false;    // 实心球渲染 (皇帝黑牌)
+          this.pierceBonus = 0;             // 穿透加成 (月亮白牌)
+          this.bulletHoming = false;        // 追踪弹 (月亮黑牌)
+          this.infinitePierce = false;      // 无限穿透 (月亮黑牌)
+          this.canShoot = true;             // 开火能力 (恋人黑牌锁死)
+          this.useAutoAim = true;           // 自动索敌 (魔术师黑牌注销)
+          this.forceWASDDirection = false;  // WASD 方向锁定 (战车黑牌)
+          this.deathExplosionChance = 0;    // 击杀爆炸概率 (死神)
+          this.deathExplosionScale = 1.0;   // 爆炸范围倍率 (死神黑牌)
+          this.deathBlackActive = false;    // AI 导演翻倍标记 (死神黑牌)
+          this.moonBlackActive = false;     // Canvas 遮罩标记 (月亮黑牌)
+
+          // ===== 活跃效果管理 =====
+          this.activeEffects = [];          // CardEffect 实例数组
+
+          // ===== 旧 buffs 兼容 (保留以防旧逻辑引用) =====
+          this.buffs = { magician:0, death:0, emperor:0, world:0, priestess:0, devil:0, wheel:0, lovers:0, hierophant:0, chariot_rev:0, tower_right:0 };
           this.shieldActive = false;
-          this.shieldCooldownFrames = 0; // ticks down to 0
+          this.shieldCooldownFrames = 0;
           
-          // Core fire mechanics
+          // ===== 计时器 =====
           this.shootTimer = 0;
-          this.towerTimer = 0; // timer for tower radial shot
+          this.towerTimer = 0;
+          this.starTimer = 0;              // 星辰底牌漩涡计时
+          this.judgementTimer = 0;          // 审判底牌激光计时
+        }
+
+        // ===== 从 activeEffects 重新计算所有属性 =====
+        recalcStats() {
+          this.speedMultiplier = 1.0;
+          this.fireRateMultiplier = 1.0;
+          this.damageMultiplier = 1.0;
+          this.bulletSizeMultiplier = 1.0;
+          this.bulletSpeedMultiplier = 1.0;
+          this.bulletRangeMultiplier = 1.0;
+          this.bulletKnockback = 0;
+          this.bulletFanCount = 1;
+          this.bulletSineWave = false;
+          this.bulletDrawAsBall = false;
+          this.pierceBonus = 0;
+          this.bulletHoming = false;
+          this.infinitePierce = false;
+          this.canShoot = true;
+          this.useAutoAim = true;
+          this.forceWASDDirection = false;
+          this.deathExplosionChance = 0;
+          this.deathExplosionScale = 1.0;
+          this.deathBlackActive = false;
+          this.moonBlackActive = false;
+          this.friction = 1.0;
+          
+          // 卡牌数量统计 (用于一些特定逻辑)
+          this.emperorCount = 0;
+          this.loversCount = 0;
+          this.magicianCount = 0;
+
+          // 遍历所有活跃效果，叠加属性
+          for (const effect of this.activeEffects) {
+            effect.applyStats(this);
+          }
         }
 
         getSpeed() {
-          let spd = this.baseSpeed;
-          if (this.buffs.chariot_rev > 0) {
-            spd *= Math.pow(0.5, this.buffs.chariot_rev); // Permanent 50% speed penalty per stack
-          }
-
-          // Accumulate bottom card (底牌) speed bonuses
-          let ultimateSpeedBonus = 0;
-          let carriesFoolsJourney = false;
-          strategicUltimateCards.forEach(uc => {
-            ultimateSpeedBonus += uc.speedBonus;
-            if (uc.type === 'fools_journey') {
-              carriesFoolsJourney = true;
-            }
-          });
-          spd *= (1 + ultimateSpeedBonus);
-          if (carriesFoolsJourney) {
-            spd *= 2.0; // The Fool's Journey permanently doubles player movement speed!
-          }
+          let spd = this.baseSpeed * this.speedMultiplier * this.permanentSpeedMod;
           return Math.max(0.6, spd);
         }
 
         getDamage() {
-          let dmg = 7.5;
-          dmg *= Math.pow(2.0, this.buffs.devil);
-          dmg *= (1.0 + this.buffs.chariot_rev * 3.0); // +300% weapon damage per stack
-
-          // Accumulate bottom card (底牌) damage bonuses
-          let ultimateDamageBonus = 0;
-          strategicUltimateCards.forEach(uc => {
-            ultimateDamageBonus += uc.damageBonus;
-          });
-          dmg *= (1.0 + ultimateDamageBonus);
-          return dmg;
+          return 7.5 * this.damageMultiplier;
         }
 
         getBulletSize() {
-          let size = 4.0;
-          size *= Math.pow(1.8, this.buffs.devil);
-          size *= (1.0 + this.buffs.chariot_rev * 1.0); // Double volume size per stack
-          return size;
-        }
-
-        getPriestessCooldownValue() {
-          if (this.buffs.priestess <= 0) return 30 * 60; // 30s default
-          // Reduce cooldown per stack: 30 secs, 22.5s, 16.8s, 12.6s, etc. (Math.pow reduction)
-          const baseCooldownSecs = 30.0 / Math.pow(this.buffs.priestess, 0.65);
-          return Math.max(5.0, baseCooldownSecs) * 60; // minimum of 5 seconds limit
+          return 4.0 * this.bulletSizeMultiplier;
         }
 
         getCurrentFireInterval() {
-          // If Wheel of fortune is active, fire rate varies in a sine wave
-          let finalInterval = 12.0; // Base interval (lower = faster)
-          if (this.buffs.wheel > 0) {
-            // 5 second cycle of sine fluctuation between extremely slow and rapid sweeps
-            const phase = (rawUpdateFrameCount / (60 * 5)) * Math.PI * 2;
-            // fluctuates multiplier between 0.3 (fast) and 2.5 (slow)
-            const sineFactor = 1.4 + Math.sin(phase) * 1.1; 
-            // Repeat draws reduce baseline multiplier by 30% per stack
-            const stackBoost = Math.pow(0.70, this.buffs.wheel - 1);
-            finalInterval = finalInterval * sineFactor * stackBoost;
-          }
-
-          // Apply Bottom card (底牌) fire rate bonuses
-          let ultimateFireRateBonus = 0;
-          strategicUltimateCards.forEach(uc => {
-            ultimateFireRateBonus += uc.fireRateBonus;
-          });
-          finalInterval = finalInterval / (1.0 + ultimateFireRateBonus);
-
-          return Math.max(3.0, finalInterval); // cannot surpass 20 shots per second
-        }
-
-        fireTowerNova() {
-          const bulletCount = 36;
-          const dmg = this.getDamage() * 1.2; // Extra heavy damage wipe!
-          const bSize = this.getBulletSize() * 0.9;
-          const wrapActive = (this.buffs.world > 0);
-          const maxWrapLife = wrapActive ? (120 + 40 * this.buffs.world) : 100;
-          
-          for (let i = 0; i < bulletCount; i++) {
-            const angle = (i / bulletCount) * Math.PI * 2;
-            bulletsArray.push(new Bullet(this.x, this.y, angle, 6.0, dmg, bSize, wrapActive, maxWrapLife, false, '#e11d48'));
-          }
-
-          // Trigger screen clear sound and visual indicator particles
-          playExplosionSound(true);
-          floatsArray.push(new FloatingText(this.x, this.y - 30, "⚡ 高塔末日环扫 • SCREEN CLEAR!", '#e11d48'));
-          screenShakeIntensity = 35;
+          let finalInterval = 12.0 / this.fireRateMultiplier;
+          return Math.max(2.0, finalInterval);
         }
 
         update() {
-          // 360 vector move calculations
+          // ===== 物理摩擦力移动系统 =====
           let dx = 0;
           let dy = 0;
           if (keys['w'] || keys['arrowup']) dy -= 1;
@@ -1640,28 +1765,42 @@
           if (keys['a'] || keys['arrowleft']) dx -= 1;
           if (keys['d'] || keys['arrowright']) dx += 1;
 
+          const speed = this.getSpeed();
+          let targetVx = 0, targetVy = 0;
           if (dx !== 0 || dy !== 0) {
             const h = Math.hypot(dx, dy);
-            const speed = this.getSpeed();
-            this.x += (dx / h) * speed;
-            this.y += (dy / h) * speed;
+            targetVx = (dx / h) * speed;
+            targetVy = (dy / h) * speed;
+          }
 
-            // Contain player inside maps limitations
+          // friction: 1.0 = 即时响应 (velocity 直接等于 target)
+          // friction: 0.02 = 冰面 (velocity 极慢地趋近 target)
+          this.velocityX += (targetVx - this.velocityX) * this.friction;
+          this.velocityY += (targetVy - this.velocityY) * this.friction;
+          this.x += this.velocityX;
+          this.y += this.velocityY;
+
+          // 世界底牌 Screen Wrap：玩家越界传送
+          const hasWorldCard = strategicUltimateCards.some(uc => uc.type === 'world');
+          if (hasWorldCard) {
+            if (this.x < 0) this.x = GAME_WIDTH;
+            else if (this.x > GAME_WIDTH) this.x = 0;
+            if (this.y < 0) this.y = GAME_HEIGHT;
+            else if (this.y > GAME_HEIGHT) this.y = 0;
+          } else {
             this.x = Math.max(this.radius + 10, Math.min(GAME_WIDTH - this.radius - 10, this.x));
             this.y = Math.max(this.radius + 10, Math.min(GAME_HEIGHT - this.radius - 10, this.y));
+          }
+
+          const isMoving = (Math.abs(this.velocityX) > 0.3 || Math.abs(this.velocityY) > 0.3);
+          if (isMoving) {
 
             // Trail particle puffs
             if (rawUpdateFrameCount % 4 === 0) {
-              const particleColor = this.buffs.devil > 0 ? '#db2777' : '#06b6d4';
+              const particleColor = '#06b6d4';
               for (let pt = 0; pt < 2; pt++) {
                  particlesArray.push(new Particle(this.x + (Math.random()-0.5)*10, this.y + (Math.random()-0.5)*10, particleColor, -dx * 1.2 + (Math.random()-0.5)*2, -dy * 1.2 + (Math.random()-0.5)*2, 20 + Math.random()*10));
               }
-            }
-
-            // Spawn fire footprint trail if Fool's Journey strategic ultimate is owned
-            const foolsCount = strategicUltimateCards.filter(uc => uc.type === 'fools_journey').length;
-            if (foolsCount > 0 && rawUpdateFrameCount % 3 === 0) {
-              fireTrailsArray.push(new FireTrail(this.x, this.y, 0.45 * foolsCount));
             }
           }
 
@@ -1670,56 +1809,46 @@
             this.ultimateInvincibleFrames--;
           }
 
-          // Automated Judgement wide laser sweeps
+          // ===== 星辰底牌：定时生成黑色漩涡 =====
+          const starCount = strategicUltimateCards.filter(uc => uc.type === 'star').length;
+          if (starCount > 0) {
+            this.starTimer++;
+            if (this.starTimer >= 600) { // 每 10 秒
+              this.starTimer = 0;
+              const vx = 80 + Math.random() * (GAME_WIDTH - 160);
+              const vy = 80 + Math.random() * (GAME_HEIGHT - 160);
+              blackVorticesArray.push(new BlackVortex(vx, vy));
+              floatsArray.push(new FloatingText(vx, vy - 20, "🌀 星辰漩涡降临！", "#6366f1"));
+              playExplosionSound(true);
+            }
+          }
+
+          // ===== 审判底牌：定时全屏激光 =====
           const judgeCount = strategicUltimateCards.filter(uc => uc.type === 'judgement').length;
           if (judgeCount > 0) {
             this.judgementTimer++;
-            if (this.judgementTimer >= 480) { // every 8 seconds
+            if (this.judgementTimer >= 360) { // 每 6 秒
               this.judgementTimer = 0;
               if (enemiesArray.length > 0) {
-                let nearest = null;
-                let minDist = Infinity;
-                for (let enemy of enemiesArray) {
-                  const dist = Math.hypot(enemy.x - this.x, enemy.y - this.y);
-                  if (dist < minDist) {
-                    minDist = dist;
-                    nearest = enemy;
+                // 找最密集的怪物群
+                let bestEnemy = enemiesArray[0];
+                let maxDensity = 0;
+                for (const enemy of enemiesArray) {
+                  let density = 0;
+                  for (const other of enemiesArray) {
+                    if (Math.hypot(enemy.x - other.x, enemy.y - other.y) < 120) density++;
                   }
+                  if (density > maxDensity) { maxDensity = density; bestEnemy = enemy; }
                 }
-                if (nearest) {
-                  const angle = Math.atan2(nearest.y - this.y, nearest.x - this.x);
-                  laserBeamsArray.push(new LaserBeam(this.x, this.y, angle, 36 * judgeCount));
-                  floatsArray.push(new FloatingText(this.x, this.y - 30, `⚡ 审判大绝扫荡 x${judgeCount}`, '#fbbf24'));
-                }
-              } else {
-                // Forward vector sweep
-                laserBeamsArray.push(new LaserBeam(this.x, this.y, -Math.PI / 2, 36 * judgeCount));
+                // 从天而降的极粗黑色垂直激光
+                laserBeamsArray.push(new LaserBeam(bestEnemy.x, -50, Math.PI / 2, 50 * judgeCount));
+                floatsArray.push(new FloatingText(bestEnemy.x, bestEnemy.y - 30, "⚡ 审判降临！", "#1c1917"));
+                screenShakeIntensity = 25;
               }
             }
           }
 
-          // Priestess shield recovery counter ticking
-          if (this.buffs.priestess > 0 && !this.shieldActive) {
-            if (this.shieldCooldownFrames > 0) {
-              this.shieldCooldownFrames--;
-              if (this.shieldCooldownFrames <= 0) {
-                this.shieldActive = true;
-                floatsArray.push(new FloatingText(this.x, this.y - 25, "🛡️ 护盾已充能！", "#10b981"));
-                playShieldRestoredSound();
-              }
-            }
-          }
-
-          // Tower Right automatic 360 cleaning waves
-          if (this.buffs.tower_right > 0) {
-            this.towerTimer++;
-            if (this.towerTimer >= 300) {
-              this.towerTimer = 0;
-              this.fireTowerNova();
-            }
-          }
-
-          // Automatic firing targeting nearest enemy
+          // ===== 自动射击循环 =====
           this.shootTimer++;
           const interval = this.getCurrentFireInterval();
           if (this.shootTimer >= interval) {
@@ -1729,81 +1858,78 @@
         }
 
         autoFire() {
-          if (enemiesArray.length === 0) return;
-          
-          // Sort to find absolute nearest enemy
-          let closestEnemy = null;
-          let minDist = Infinity;
-          for (let enemy of enemiesArray) {
-            const dist = Math.hypot(enemy.x - this.x, enemy.y - this.y);
-            if (dist < minDist) {
-              minDist = dist;
-              closestEnemy = enemy;
+          if (!this.canShoot) return; // 恋人黑牌：canShoot 锁死
+
+          // ===== 确定射击方向 =====
+          let angle = 0;
+          let hasTarget = false;
+
+          if (this.forceWASDDirection) {
+            // 战车黑牌：只能朝 WASD 方向射击
+            let fdx = 0, fdy = 0;
+            if (keys['w'] || keys['arrowup']) fdy -= 1;
+            if (keys['s'] || keys['arrowdown']) fdy += 1;
+            if (keys['a'] || keys['arrowleft']) fdx -= 1;
+            if (keys['d'] || keys['arrowright']) fdx += 1;
+            if (fdx === 0 && fdy === 0) return; // 不按方向键不开火
+            angle = Math.atan2(fdy, fdx);
+            hasTarget = true;
+          } else if (this.useAutoAim) {
+            // 正常自动索敌
+            if (enemiesArray.length === 0) return;
+            let closest = null, minDist = Infinity;
+            for (const enemy of enemiesArray) {
+              const d = Math.hypot(enemy.x - this.x, enemy.y - this.y);
+              if (d < minDist) { minDist = d; closest = enemy; }
             }
+            if (closest) {
+              angle = Math.atan2(closest.y - this.y, closest.x - this.x);
+              hasTarget = true;
+            }
+          } else {
+            // 魔术师黑牌：注销自动索敌 → 随机方向
+            angle = Math.random() * Math.PI * 2;
+            hasTarget = true;
           }
 
-          if (closestEnemy) {
-            const angle = Math.atan2(closestEnemy.y - this.y, closestEnemy.x - this.x);
-            const dmg = this.getDamage();
-            const bSize = this.getBulletSize();
-            
-            // World screen wrap logic checks
-            const wrapActive = (this.buffs.world > 0);
-            const maxWrapLife = wrapActive ? (120 + 40 * this.buffs.world) : 100;
-            const bSpeed = 6.5;
+          if (!hasTarget) return;
 
-            // Fire Base bullet
-            bulletsArray.push(new Bullet(this.x, this.y, angle, bSpeed, dmg, bSize, wrapActive, maxWrapLife, false));
-            
-            // Magician multicast triggers homing bullets (20% per stack)
-            if (this.buffs.magician > 0) {
-              const prob = 0.20 * this.buffs.magician;
-              
-              // Count guaranteed extra bullets
-              const baseExtraCount = Math.floor(prob);
-              const remainderChance = prob % 1;
-              const actualExtras = baseExtraCount + (Math.random() < remainderChance ? 1 : 0);
+          // ===== 计算子弹属性 =====
+          const dmg = this.getDamage();
+          const bSize = this.getBulletSize();
+          const bSpeed = 6.5 * this.bulletSpeedMultiplier;
+          const maxLife = Math.floor(100 * this.bulletRangeMultiplier);
+          const isHoming = this.bulletHoming;
+          const pierce = this.infinitePierce ? 9999 : (1 + this.pierceBonus);
+          const knockback = this.bulletKnockback;
+          const sineWave = this.bulletSineWave;
+          const drawAsBall = this.bulletDrawAsBall;
+          const hasWorld = strategicUltimateCards.some(uc => uc.type === 'world');
 
-              for (let i = 0; i < actualExtras; i++) {
-                // Homing bullet flies at random spread offset angle but tracks nearest targets
-                const spreadAngle = angle + (Math.random() - 0.5) * 1.5;
-                // bullet properties: homing tracking = true
-                bulletsArray.push(new Bullet(this.x, this.y, spreadAngle, bSpeed * 0.9, dmg * 0.75, bSize * 0.85, wrapActive, maxWrapLife, true));
-              }
+          // ===== 发射子弹（支持扇形弹幕） =====
+          const fanCount = this.bulletFanCount;
+          const spread = Math.PI / 3; // 60° 扇形
+          for (let i = 0; i < fanCount; i++) {
+            let fanAngle = angle;
+            if (fanCount > 1) {
+              fanAngle = angle - spread / 2 + (i / (fanCount - 1)) * spread;
             }
-
-            playShootSound();
+            const b = new Bullet(this.x, this.y, fanAngle, bSpeed, dmg, bSize, hasWorld, maxLife, isHoming);
+            b.pierceCount = pierce;
+            b.knockback = knockback;
+            b.sineWave = sineWave;
+            b.baseAngle = fanAngle;
+            b.drawAsBall = drawAsBall;
+            bulletsArray.push(b);
           }
+
+          playShootSound();
         }
 
         draw() {
           ctx.save();
-          ctx.shadowBlur = 0; // Disable all glow shadows
+          ctx.shadowBlur = 0;
           
-          // Emperor slowness ring field drawing
-          if (this.buffs.emperor > 0) {
-            const auraRadius = 100 + 40 * (this.buffs.emperor - 1);
-            ctx.save();
-            ctx.beginPath();
-            ctx.arc(this.x, this.y, auraRadius, 0, Math.PI * 2);
-            ctx.strokeStyle = '#1c1917';
-            ctx.lineWidth = 1.5;
-            ctx.setLineDash([6, 6]); // Hand-drawn sketchy dashed circle
-            ctx.stroke();
-            ctx.restore();
-          }
-
-          // Render Priestess shield outline
-          if (this.buffs.priestess > 0 && this.shieldActive) {
-            ctx.save();
-            ctx.beginPath();
-            ctx.arc(this.x, this.y, this.radius + 12, 0, Math.PI * 2);
-            ctx.strokeStyle = '#22c55e'; // Bold emerald marker green color
-            ctx.lineWidth = 3.5;
-            ctx.setLineDash([4, 4]); // Sketchy dotted circular shield
-            ctx.stroke();
-            ctx.restore();
-          }
 
           // Main player body (Cute boy icon)
           ctx.save();
@@ -1941,6 +2067,7 @@
       // 6. MAP & CANVAS ENGINES MAIN COORDINATION
       function initGame() {
         initAudio();
+        resizeCanvas();
         
         // Reset state values
         enemiesArray = [];
@@ -1949,6 +2076,8 @@
         floatsArray = [];
         alliesArray = [];
         shockwavesArray = [];
+        blackVorticesArray = [];
+        scribbleLinesCache = null;
 
         // Reset hand & strategic ultimate systems
         playerHand = [];
@@ -2082,12 +2211,12 @@
         statFireRate.textContent = `${shotsPerSec.toFixed(1)} /s`;
         
         let trajDesc = "自动指向单粒";
-        if (playerObj.buffs.magician > 0) {
-          const prob = playerObj.buffs.magician * 20;
+        if (playerObj.magicianCount > 0) {
+          const prob = playerObj.magicianCount * 20;
           trajDesc = `多重分裂 (${prob}%)`;
         }
-        if (playerObj.buffs.world > 0) {
-          trajDesc += " + 空间折投";
+        if (playerObj.moonBlackActive) {
+          trajDesc += " + 无限穿透追踪";
         }
         statProjectiles.textContent = trajDesc;
 
@@ -2095,18 +2224,9 @@
           statAllies.textContent = alliesArray.length;
         }
 
-        // Shield readings status
-        if (playerObj.buffs.priestess === 0) {
-          hudShieldStatus.textContent = "⚔️ 信仰匮乏：未捕获护盾";
-          hudShieldStatus.style.color = '#6b7280';
-        } else if (playerObj.shieldActive) {
-          hudShieldStatus.textContent = `🛡️ 护盾激活：受击保护 [x${playerObj.buffs.priestess}]`;
-          hudShieldStatus.style.color = '#10b981';
-        } else {
-          const valSecsLeft = (playerObj.shieldCooldownFrames / 60).toFixed(1);
-          hudShieldStatus.textContent = `⏳ 护盾重构充能中: ${valSecsLeft} 秒`;
-          hudShieldStatus.style.color = '#ef4444';
-        }
+        // Shield readings status removed (Priestess card removed)
+        hudShieldStatus.textContent = "🛡️ 装甲系统：待定";
+        hudShieldStatus.style.color = '#6b7280';
 
         // Kill counters readings
         hudKillCount.textContent = `击杀总数: ${totalKillsCount}`;
@@ -2160,9 +2280,8 @@
           
           if (i < playerHand.length) {
             const card = playerHand[i];
-            const isCursed = (card.tier === 'Cursed');
+            const isBlack = card.isBlack;
             
-            // Bold hand-drawn styling based on card type
             slot.className = `h-11 flex flex-col items-center justify-center rounded-lg border-3 text-stone-900 font-sans text-center select-none relative overflow-hidden transition-all duration-300 transform ${
               isBleedingReplacement 
                 ? 'cursor-pointer hover:border-red-500 hover:scale-105 active:scale-95 animate-pulse' 
@@ -2172,20 +2291,22 @@
             slot.style.borderColor = card.color;
             slot.style.boxShadow = `3px 3px 0px #1c1917`;
             
-            // Soft paper backdrops
-            if (isCursed) {
-              slot.style.backgroundColor = '#fef2f2'; // Cursed warn red
+            if (isBlack) {
+              slot.style.backgroundColor = '#1c1917';
+              slot.style.color = '#fef2f2';
             } else {
-              slot.style.backgroundColor = '#ffffff';  // Positive white
+              slot.style.backgroundColor = '#ffffff';
             }
 
+            const variantMark = isBlack ? '⚫' : '⚪';
+            const textColor = isBlack ? '#fef2f2' : '#1c1917';
             slot.innerHTML = `
-              <span class="text-[9px] font-black block leading-none font-sans truncate max-w-[50px] text-stone-900">${card.name.replace(/【|】/g, '')}</span>
+              <span class="text-[9px] font-black block leading-none font-sans truncate max-w-[50px]" style="color: ${textColor}">${variantMark}${card.name.replace(/【|】/g, '')}</span>
               <span class="text-[8.5px] font-mono font-black block mt-0.5" style="color: ${card.color}">${card.roman}</span>
               
-              <!-- Hover tooltip (only if not replacing) -->
+              <!-- Hover tooltip -->
               <div class="hidden group-hover:flex flex-col absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-48 p-2 bg-white border-2 border-stone-900 rounded-lg text-[8px] text-stone-800 pointer-events-none z-50 shadow-[4px_4px_0px_#1c1917]">
-                <span class="font-black border-b-2 border-stone-900 border-dashed pb-1 mb-1" style="color: ${card.color}">${card.name}</span>
+                <span class="font-black border-b-2 border-stone-900 border-dashed pb-1 mb-1" style="color: ${card.color}">${variantMark} ${card.name}</span>
                 <span class="leading-normal font-bold">${card.desc}</span>
               </div>
             `;
@@ -2357,7 +2478,7 @@
                   </h3>
                   
                   <span class="text-[7.5px] font-mono uppercase font-bold tracking-widest px-2 py-0.5 rounded-full border" style="border-color: ${card.color}40; color: ${card.color}; background-color: ${card.color}10">
-                    ${card.tier} • ${card.tags ? card.tags[0] : '命理'}
+                    ${card.isBlack ? '⚫ 逆位' : '⚪ 正位'} • ${card.tags ? card.tags[0] : '命理'}
                   </span>
                   
                   <p class="text-[9px] leading-relaxed text-zinc-350 mt-2 font-sans px-1 opacity-90">
@@ -2642,68 +2763,55 @@
         if (!playerObj) return;
 
         if (playerHand.length < 9) {
+          // 创建 CardEffect 实例并附加到卡牌
+          const effect = createCardEffect(drawnCard.id, drawnCard.isBlack);
+          drawnCard.effect = effect;
           playerHand.push(drawnCard);
-          
-          // Apply buffs stack counts
-          playerObj.buffs[drawnCard.id] = (playerObj.buffs[drawnCard.id] || 0) + 1;
-          
-          if (drawnCard.id === 'priestess') {
-            playerObj.shieldActive = true;
-          }
-          
-          // Orbit companion helper 'lovers'
-          if (drawnCard.id === 'lovers') {
-            let companionAlive = alliesArray.find(a => a.type === 'lovers');
-            if (companionAlive) {
-              companionAlive.hp = companionAlive.maxHp;
-              floatsArray.push(new FloatingText(companionAlive.x, companionAlive.y - 20, "💖 伴侣命源恢复，基础攻速上调！", "#f472b6"));
-            } else {
-              alliesArray.push(new Ally(playerObj.x, playerObj.y, 'lovers'));
-              floatsArray.push(new FloatingText(playerObj.x, playerObj.y - 20, "💖 灵魂伴侣降凡！", "#f472b6"));
-            }
-          }
-          
-          // Turrets spawn 'hierophant'
-          if (drawnCard.id === 'hierophant') {
-            const currentLevel = playerObj.buffs.hierophant;
-            const spawnCount = currentLevel === 1 ? 3 : 2;
-            for (let sIdx = 0; sIdx < spawnCount; sIdx++) {
-              const angle = Math.random() * Math.PI * 2;
-              const distance = 45 + Math.random() * 45;
-              const tx = playerObj.x + Math.cos(angle) * distance;
-              const ty = playerObj.y + Math.sin(angle) * distance;
-              const cx = Math.max(25, Math.min(GAME_WIDTH - 25, tx));
-              const cy = Math.max(25, Math.min(GAME_HEIGHT - 25, ty));
-              alliesArray.push(new Ally(cx, cy, 'hierophant'));
-              // Spawn sparkly neon sparks
-              for (let pNum = 0; pNum < 6; pNum++) {
-                const pa = Math.random() * Math.PI * 2;
-                const ps = Math.random() * 2 + 1;
-                particlesArray.push(new Particle(cx, cy, '#fb923c', Math.cos(pa) * ps, Math.sin(pa) * ps, 20));
-              }
-            }
-            floatsArray.push(new FloatingText(playerObj.x, playerObj.y - 20, `⛪ 教皇信徒安设 x${spawnCount}！`, "#fb923c"));
+
+          // 将效果加入 Player 活跃效果列表并重算属性
+          playerObj.activeEffects.push(effect);
+
+          // 皇帝黑牌：永久移速扣除 (不受 recalcStats 重置)
+          if (drawnCard.id === 'emperor' && drawnCard.isBlack) {
+            playerObj.permanentSpeedMod *= 0.5;
           }
 
-          // Radiant particle burst focused around player in the chosen card's color
+          playerObj.recalcStats();
+
+          // 恋人卡牌：生成友军
+          if (drawnCard.id === 'lovers') {
+            if (drawnCard.isBlack) {
+              // 黑牌：瞬间召唤 4 个狂暴友军
+              for (let si = 0; si < 4; si++) {
+                alliesArray.push(new Ally(playerObj.x, playerObj.y, 'lovers'));
+              }
+              floatsArray.push(new FloatingText(playerObj.x, playerObj.y - 20, "⚫ 4 狂暴友军降临！本体封火！", "#db2777"));
+            } else {
+              // 白牌：召唤 1 个友军
+              alliesArray.push(new Ally(playerObj.x, playerObj.y, 'lovers'));
+              floatsArray.push(new FloatingText(playerObj.x, playerObj.y - 20, "💖 灵魂伴侣降凡！", "#db2777"));
+            }
+          }
+
+          // 粒子爆发
           for (let i = 0; i < 28; i++) {
             const a = Math.random() * Math.PI * 2;
             const s = Math.random() * 4 + 1.8;
             particlesArray.push(new Particle(playerObj.x, playerObj.y, drawnCard.color, Math.cos(a) * s, Math.sin(a) * s, 35));
           }
 
-          // Audio triggers
           playCardSweep();
           playExplosionSound(true);
 
-          floatsArray.push(new FloatingText(playerObj.x, playerObj.y - 30, `🔮 契约签署: ${drawnCard.name} Lvl ${playerObj.buffs[drawnCard.id]}`, drawnCard.color));
+          const variant = drawnCard.isBlack ? '⚫ 逆位' : '⚪ 正位';
+          floatsArray.push(new FloatingText(playerObj.x, playerObj.y - 30, `🔮 ${variant}: ${drawnCard.name}`, drawnCard.color));
 
-          // Check if hand now reaches full capacity of 9 cards to melt automatically!
+          // 9 张满载 → 触发祭天熔铸
           if (playerHand.length === 9) {
             triggerUltimateDivinationSettlement();
           }
         } else {
-          // Hand is already full (9 cards)! Trigger "Bleeding Replacement"
+          // 手牌已满！进入流血替换
           isBleedingReplacement = true;
           pendingReplacementCard = drawnCard;
           
@@ -2712,7 +2820,6 @@
 
           floatsArray.push(new FloatingText(playerObj.x, playerObj.y - 35, "⚠️ 手牌满载！进入流血替换！", "#ef4444"));
 
-          // Show the replacement preview block HUD
           const previewEl = document.getElementById('replacement-preview');
           const nameEl = document.getElementById('replacement-card-name');
           if (previewEl && nameEl) {
@@ -2729,7 +2836,6 @@
         divinationScreen.classList.add('opacity-0', 'pointer-events-none', 'scale-95');
         divinationScreen.style.pointerEvents = 'none';
 
-        // Unpause main loop execution
         isGamePausedForDivination = false;
 
         updateHudStats();
@@ -2743,7 +2849,7 @@
         playExplosionSound(true);
         screenShakeIntensity = 38;
 
-        // 1. Advent Protection (Full screen wipe + 3 seconds barriers)
+        // 1. 降世护盾：清屏 + 3 秒无敌
         for (let idx = 0; idx < 60; idx++) {
           const a = (idx / 60) * Math.PI * 2;
           const spDef = Math.random() * 8 + 4;
@@ -2752,7 +2858,6 @@
 
         enemiesArray.forEach(enemy => {
           totalKillsCount++;
-          // Explosion visual cues
           const countParticles = enemy.type === 'behemoth' ? 12 : 5;
           for (let pIdx = 0; pIdx < countParticles; pIdx++) {
             const pa = Math.random() * Math.PI * 2;
@@ -2760,44 +2865,37 @@
             particlesArray.push(new Particle(enemy.x, enemy.y, enemy.color, Math.cos(pa) * ps, Math.sin(pa) * ps, 20));
           }
         });
-        enemiesArray = []; // Clear list
+        enemiesArray = [];
 
         floatsArray.push(new FloatingText(playerObj.x, playerObj.y - 45, "🌟 命运大满贯 • 终极降世无敌屏障！", "#c084fc"));
-        playerObj.ultimateInvincibleFrames = 180; // 3 seconds at 60fps
+        playerObj.ultimateInvincibleFrames = 180;
 
-        // 2. Melting inherits stats calculations
-        let inheritedDamageMultiplier = 0;
-        let inheritedFireRateSpeedup = 0;
-        let inheritedSpeedMultiplier = 0;
+        // 2. 统计黑牌数量，决定底牌 Tier
+        const blackCount = playerHand.filter(card => card.isBlack).length;
+        let bottomCardType, bottomCardName, bottomCardColor, bottomCardDesc;
 
-        playerHand.forEach(card => {
-          if (card.id === 'devil') {
-            inheritedDamageMultiplier += 1.0 * 0.20;
-          } else if (card.id === 'chariot_rev') {
-            inheritedDamageMultiplier += 3.0 * 0.20;
-            inheritedSpeedMultiplier -= 0.5 * 0.20;
-          } else if (card.id === 'wheel') {
-            inheritedFireRateSpeedup += 0.30 * 0.20;
-          } else if (card.id === 'magician') {
-            inheritedFireRateSpeedup += 0.20 * 0.20;
-          } else if (card.id === 'emperor') {
-            inheritedSpeedMultiplier += 0.15 * 0.20;
-          }
-        });
-
-        // Generate bottom card (Judgement or The Fool's Journey)
-        const cursedCount = playerHand.filter(card => card.tier === 'Cursed').length;
-        const generateFoolsJourney = (cursedCount >= 3) || (Math.random() < (cursedCount / 9));
-
-        const bottomCardType = generateFoolsJourney ? 'fools_journey' : 'judgement';
-        const bottomCardName = generateFoolsJourney ? '【愚者·终焉】' : '【审判】';
-        const bottomCardColor = generateFoolsJourney ? '#ec4899' : '#fbbf24';
-        const bottomCardDesc = generateFoolsJourney 
-          ? '移速永久翻倍，且在掠行轨迹上不断溢火炽烧，造成连续高灼烧真实伤害' 
-          : '每隔 8 秒自动搜寻最近敌手，下劈一道贯穿全屏的圣神大裁决黄金雷击';
+        if (blackCount <= 2) {
+          // Tier 1: 星辰 (The Star) — 黑色漩涡引力绞杀
+          bottomCardType = 'star';
+          bottomCardName = '【星辰】';
+          bottomCardColor = '#6366f1';
+          bottomCardDesc = '每 10 秒生成黑色漩涡，引力吸附绞杀周围怪物';
+        } else if (blackCount <= 6) {
+          // Tier 2: 审判 (Judgement) — 全屏垂直激光
+          bottomCardType = 'judgement';
+          bottomCardName = '【审判】';
+          bottomCardColor = '#fbbf24';
+          bottomCardDesc = '每 6 秒对最密集处下勈极粗垂直激光秒杀';
+        } else {
+          // Tier 3: 世界 (The World) — Screen Wrap 越界传送
+          bottomCardType = 'world';
+          bottomCardName = '【世界】';
+          bottomCardColor = '#a21caf';
+          bottomCardDesc = '子弹与玩家越的从对侧传送回来';
+        }
 
         if (strategicUltimateCards.length >= 3) {
-          strategicUltimateCards.shift(); // Max limits of 3
+          strategicUltimateCards.shift();
         }
 
         strategicUltimateCards.push({
@@ -2805,23 +2903,21 @@
           name: bottomCardName,
           color: bottomCardColor,
           desc: bottomCardDesc,
-          damageBonus: inheritedDamageMultiplier,
-          fireRateBonus: inheritedFireRateSpeedup,
-          speedBonus: inheritedSpeedMultiplier
+          damageBonus: 0,
+          fireRateBonus: 0,
+          speedBonus: 0
         });
 
-        // Deduct player's buffs based on the 9 discarded cards!
-        playerHand.forEach(card => {
-          playerObj.buffs[card.id]--;
-        });
+        // 3. 清除所有手牌效果
+        playerObj.activeEffects = playerObj.activeEffects.filter(
+          eff => !playerHand.some(card => card.effect === eff)
+        );
+        playerObj.recalcStats();
+        playerHand = [];
 
-        playerHand = []; // reset
+        floatsArray.push(new FloatingText(playerObj.x, playerObj.y - 25, `✨ 熔铸底牌: ${bottomCardName} (${blackCount}黑) ✨`, bottomCardColor));
 
-        floatsArray.push(new FloatingText(playerObj.x, playerObj.y - 25, `✨ 熔铸继承大器成就: ${bottomCardName} ✨`, bottomCardColor));
-
-        if (playerObj.buffs.priestess <= 0 && playerObj.shieldActive) {
-          playerObj.shieldActive = false;
-        }
+        floatsArray.push(new FloatingText(playerObj.x, playerObj.y - 25, `✨ 底牌 Tier: ${bottomCardName} (黑牌数:${blackCount}) ✨`, bottomCardColor));
 
         playShieldRestoredSound();
 
@@ -2836,46 +2932,51 @@
 
         const replacedCard = playerHand[slotIdx];
 
-        if (replacedCard.tier === 'Cursed') {
-          // Replaced a cursed card! Spawn high speed punisher!
+        if (replacedCard.isBlack) {
+          // 替换黑牌：召唤惩罚者
           const rX = playerObj.x + (Math.random() - 0.5) * 200;
           const rY = playerObj.y + (Math.random() - 0.5) * 200;
           enemiesArray.push(new Enemy(rX, rY, 'punisher'));
-          
           floatsArray.push(new FloatingText(playerObj.x, playerObj.y - 25, "👹 逆位释放：裁罚惩戒天降！", "#ef4444"));
           playExplosionSound(true);
         } else {
-          // Replaced positive card! permanently drain 1 Max HP limit!
+          // 替换白牌：折损生命上限
           playerObj.maxHp--;
           if (playerObj.hp > playerObj.maxHp) playerObj.hp = playerObj.maxHp;
-
-          floatsArray.push(new FloatingText(playerObj.x, playerObj.y - 25, "🩸 丢弃正位：折损生命上限！ -1", "#f43f5e"));
+          floatsArray.push(new FloatingText(playerObj.x, playerObj.y - 25, "�ꥸ 丢弃正位：折损生命上限！ -1", "#f43f5e"));
           playShieldPopSound();
           screenShakeIntensity = 25;
-
           if (playerObj.maxHp <= 0 || playerObj.hp <= 0) {
             triggerGameOver();
             return;
           }
         }
 
-        // Deduct old card passive buff stack
-        playerObj.buffs[replacedCard.id]--;
-
-        // Put new pending card into hand index
-        playerHand[slotIdx] = pendingReplacementCard;
-        // Apply new card passive buffs stack
-        playerObj.buffs[pendingReplacementCard.id] = (playerObj.buffs[pendingReplacementCard.id] || 0) + 1;
-
-        if (pendingReplacementCard.id === 'priestess') {
-          playerObj.shieldActive = true;
+        // 移除旧卡的 CardEffect
+        if (replacedCard.effect) {
+          const idx = playerObj.activeEffects.indexOf(replacedCard.effect);
+          if (idx >= 0) playerObj.activeEffects.splice(idx, 1);
         }
 
-        // Orbit companion helper 'lovers'
+        // 创建新卡的 CardEffect
+        const newEffect = createCardEffect(pendingReplacementCard.id, pendingReplacementCard.isBlack);
+        pendingReplacementCard.effect = newEffect;
+        playerHand[slotIdx] = pendingReplacementCard;
+        playerObj.activeEffects.push(newEffect);
+
+        // 皇帝黑牌永久惩罚
+        if (pendingReplacementCard.id === 'emperor' && pendingReplacementCard.isBlack) {
+          playerObj.permanentSpeedMod *= 0.5;
+        }
+
+        playerObj.recalcStats();
+
+        // 恋人卡特殊处理
         if (pendingReplacementCard.id === 'lovers') {
-          let companionAlive = alliesArray.find(a => a.type === 'lovers');
-          if (companionAlive) {
-            companionAlive.hp = companionAlive.maxHp;
+          if (pendingReplacementCard.isBlack) {
+            for (let si = 0; si < 4; si++) {
+              alliesArray.push(new Ally(playerObj.x, playerObj.y, 'lovers'));
+            }
           } else {
             alliesArray.push(new Ally(playerObj.x, playerObj.y, 'lovers'));
           }
@@ -2918,9 +3019,7 @@
         // Count cards
         let countCardsBought = 0;
         if (playerObj) {
-          for (let k in playerObj.buffs) {
-            countCardsBought += playerObj.buffs[k];
-          }
+          countCardsBought = playerObj.activeEffects.length;
         }
         reportCards.textContent = `${countCardsBought} 本源契约`;
 
@@ -2945,50 +3044,41 @@
 
       // WEIGHTED TAROT DRAW GENERATOR ("DUBI-HONEY" ALGORITHM)
       function getThreeRandomCards() {
-        // Pool splittings based on criteria
-        const poolCommonRare = TAROT_CARDS_POOL.filter(card => card.tier !== 'Cursed');
-        const poolCursed = TAROT_CARDS_POOL.filter(card => card.tier === 'Cursed');
-
         totalDrawsCount++;
 
-        let drawnCards = [];
-
+        // AI 导演决定黑牌出现概率
+        let blackChance = 0;
         if (totalDrawsCount <= 3) {
-          // Draws 1 to 3: Purely Common & Rare positive cards (No negative cursings)
-          let available = [...poolCommonRare];
-          while (drawnCards.length < 3 && available.length > 0) {
-            const idx = Math.floor(Math.random() * available.length);
-            drawnCards.push(available.splice(idx, 1)[0]);
-          }
+          blackChance = 0;         // 前 3 次：100% 白牌
+        } else if (totalDrawsCount <= 6) {
+          blackChance = 0.15;      // 第 4-6 次：15% 黑牌
         } else {
-          // Draw 4 onwards: 25% chance of spawning custom Cursed cards in the 3 slots
-          const includeCursed = (Math.random() < 0.25) && (poolCursed.length > 0);
-          
-          if (includeCursed) {
-            // Include exactly 1 cursed item
-            const curses = [...poolCursed];
-            const cIdx = Math.floor(Math.random() * curses.length);
-            drawnCards.push(curses[cIdx]);
-
-            // Draw other 2 from safe pool
-            let available = [...poolCommonRare];
-            while (drawnCards.length < 3 && available.length > 0) {
-              const idx = Math.floor(Math.random() * available.length);
-              drawnCards.push(available.splice(idx, 1)[0]);
-            }
-          } else {
-            // Draw all 3 from safe pool
-            let available = [...poolCommonRare];
-            while (drawnCards.length < 3 && available.length > 0) {
-              const idx = Math.floor(Math.random() * available.length);
-              drawnCards.push(available.splice(idx, 1)[0]);
-            }
-          }
+          blackChance = 0.25 + (totalDrawsCount - 7) * 0.02; // 第 7 次起：25%+，每次 +2%
+          blackChance = Math.min(blackChance, 0.6); // 上限 60%
         }
 
-        // Shuffle deck choice positions so the cursed element isn't always sitting at index-0
-        drawnCards.sort(() => Math.random() - 0.5);
+        let drawnCards = [];
+        // 从 7 张基础牌中随机抽 3 张（可重复牌型）
+        for (let i = 0; i < 3; i++) {
+          const baseCard = CARD_DICTIONARY[Math.floor(Math.random() * CARD_DICTIONARY.length)];
+          const isBlack = Math.random() < blackChance;
+          const variant = isBlack ? baseCard.black : baseCard.white;
+          drawnCards.push({
+            id: baseCard.id,
+            name: baseCard.name,
+            roman: baseCard.roman,
+            tag: baseCard.tag,
+            color: baseCard.color,
+            tags: baseCard.tags,
+            desc: variant.desc,
+            tier: variant.tier,
+            isBlack: isBlack,
+            shadowClass: 'chalk-card'
+          });
+        }
 
+        // 打乱顺序
+        drawnCards.sort(() => Math.random() - 0.5);
         return drawnCards;
       }
 
@@ -3026,15 +3116,16 @@
         }
 
         // Generate dynamic enemies on edges progressively faster based on difficulty level
-        // Redesigned to be smoother and avoid solid walls of enemies spawning too fast
-        const curTimerRate = Math.max(15, 100 - activeDifficultyLevel * 10);
+        // 死神黑牌：生成频率与上限翻倍
+        const deathMod = (playerObj.deathBlackActive) ? 2 : 1;
+        const curTimerRate = Math.max(8, Math.floor((100 - activeDifficultyLevel * 10) / deathMod));
         if (rawUpdateFrameCount % curTimerRate === 0) {
           spawnSingleEnemyEdge();
         }
 
-        // Spawn extra swarm enemies dynamically based on random ticks (much lighter odds)
-        const spawnOdds = 0.005 + (activeDifficultyLevel * 0.001); // chance per frame
-        if (Math.random() < Math.min(0.04, spawnOdds)) {
+        // Spawn extra swarm enemies dynamically based on random ticks
+        const spawnOdds = (0.005 + (activeDifficultyLevel * 0.001)) * deathMod;
+        if (Math.random() < Math.min(0.08, spawnOdds)) {
           spawnSingleEnemyEdge();
         }
 
@@ -3083,8 +3174,17 @@
             if (dist < collisionDist) {
               // Enemy hurt
               enemy.hp -= bullet.damage;
-              enemy.hitFlashDuration = 3; // flash white 3 frames
+              enemy.hitFlashDuration = 3;
               screenShakeIntensity = Math.min(25, screenShakeIntensity + 1.5);
+
+              // 战车黑牌：子弹击退效果
+              if (bullet.knockback > 0) {
+                const bDist = Math.hypot(bullet.vx, bullet.vy) || 1;
+                enemy.x += (bullet.vx / bDist) * bullet.knockback;
+                enemy.y += (bullet.vy / bDist) * bullet.knockback;
+                enemy.x = Math.max(0, Math.min(GAME_WIDTH, enemy.x));
+                enemy.y = Math.max(0, Math.min(GAME_HEIGHT, enemy.y));
+              }
 
               // Spawn tiny contact sparks
               for (let pHits = 0; pHits < 8; pHits++) {
@@ -3117,9 +3217,9 @@
                 // Audio & points feedback elements
                 playExplosionSound(enemy.type === 'behemoth');
                 
-                // Corpse explosion splash mechanics (The Death card)
-                if (playerObj.buffs.death > 0) {
-                  triggerCorpseExplosion(enemy.x, enemy.y, playerObj.buffs.death);
+                // 死神卡牌：击杀爆炸概率检查 (CardEffect 系统)
+                if (playerObj.deathExplosionChance > 0 && Math.random() < playerObj.deathExplosionChance) {
+                  triggerCorpseExplosion(enemy.x, enemy.y, playerObj.deathExplosionScale);
                 }
 
                 // Check card draw threshold - Real-time auto draw with progressive curve!
@@ -3214,25 +3314,12 @@
               continue;
             }
 
-            if (playerObj.buffs.priestess > 0 && playerObj.shieldActive) {
-              // High Priestess shield absorbs damage
-              playerObj.shieldActive = false;
-              playerObj.shieldCooldownFrames = playerObj.getPriestessCooldownValue();
-              
-              floatsArray.push(new FloatingText(playerObj.x, playerObj.y - 20, "💥 SHIELD DEFRACTED • 护盾破裂！", "#f43f5e"));
-              playShieldPopSound();
-              screenShakeIntensity = 30;
-              
-              // Push enemy back forcefully
-              const pushAngle = Math.atan2(enemy.y - playerObj.y, enemy.x - playerObj.x);
-              enemy.x += Math.cos(pushAngle) * 120;
-              enemy.y += Math.sin(pushAngle) * 120;
-            } else {
-              playerObj.hp--;
-              screenShakeIntensity = 38;
+            // 直接扣血
+            playerObj.hp--;
+            screenShakeIntensity = 38;
 
-              if (playerObj.hp <= 0) {
-                screenShakeIntensity = 45;
+            if (playerObj.hp <= 0) {
+              screenShakeIntensity = 45;
                 triggerGameOver();
                 return;
               } else {
@@ -3246,7 +3333,6 @@
                 enemy.x += Math.cos(pushAngle) * 100;
                 enemy.y += Math.sin(pushAngle) * 100;
               }
-            }
           }
         }
 
@@ -3255,6 +3341,14 @@
           shockwavesArray[i].update();
           if (shockwavesArray[i].life <= 0) {
             shockwavesArray.splice(i, 1);
+          }
+        }
+
+        // BlackVortex 更新 (星辰底牌)
+        for (let i = blackVorticesArray.length - 1; i >= 0; i--) {
+          blackVorticesArray[i].update();
+          if (blackVorticesArray[i].life <= 0) {
+            blackVorticesArray.splice(i, 1);
           }
         }
 
@@ -3344,6 +3438,11 @@
           sWave.draw();
         }
 
+        // BlackVortex 渲染 (星辰底牌)
+        for (let vortex of blackVorticesArray) {
+          vortex.draw();
+        }
+
         for (let particle of particlesArray) {
           particle.draw();
         }
@@ -3351,31 +3450,46 @@
           flTxt.draw();
         }
 
-        // DEVIL Blood Pact & TOWER Sight-reduction vignette masking overlays (Compounding)
-        const hasVignette = (playerObj.buffs.devil > 0 || playerObj.buffs.tower_right > 0);
-        if (hasVignette) {
+        // 月亮黑牌：视野压缩至 150px + 外围乱线涂满
+        if (playerObj.moonBlackActive) {
           ctx.save();
-          let sightRadius = 550.0;
-          if (playerObj.buffs.devil > 0) {
-            sightRadius *= Math.pow(0.72, playerObj.buffs.devil);
-          }
-          if (playerObj.buffs.tower_right > 0) {
-            sightRadius *= Math.pow(0.70, playerObj.buffs.tower_right); // 30% reduction per stack of Tower
-          }
-          sightRadius = Math.max(90, sightRadius);
-
+          const sightR = 150;
           const rGrad = ctx.createRadialGradient(
             playerObj.x, playerObj.y, 10,
-            playerObj.x, playerObj.y, sightRadius
+            playerObj.x, playerObj.y, sightR
           );
-          
           rGrad.addColorStop(0, 'rgba(0,0,0,0)');
-          rGrad.addColorStop(0.35, 'rgba(0,0,0,0.15)');
-          rGrad.addColorStop(0.85, 'rgba(22,22,22,0.95)');
-          rGrad.addColorStop(1, '#161616');
-
+          rGrad.addColorStop(0.6, 'rgba(0,0,0,0)');
+          rGrad.addColorStop(0.85, 'rgba(20,20,20,0.9)');
+          rGrad.addColorStop(1, '#141414');
           ctx.fillStyle = rGrad;
           ctx.fillRect(-100, -100, GAME_WIDTH + 200, GAME_HEIGHT + 200);
+
+          // 外围乱线涂满效果
+          if (!scribbleLinesCache) {
+            scribbleLinesCache = [];
+            for (let si = 0; si < 80; si++) {
+              scribbleLinesCache.push({
+                x: Math.random() * GAME_WIDTH,
+                y: Math.random() * GAME_HEIGHT,
+                len: 20 + Math.random() * 60,
+                angle: Math.random() * Math.PI * 2
+              });
+            }
+          }
+          ctx.strokeStyle = '#1c1917';
+          ctx.lineWidth = 3;
+          ctx.globalAlpha = 0.4;
+          for (const line of scribbleLinesCache) {
+            const dist = Math.hypot(line.x - playerObj.x, line.y - playerObj.y);
+            if (dist > sightR * 0.7) {
+              ctx.beginPath();
+              ctx.moveTo(line.x, line.y);
+              ctx.lineTo(line.x + Math.cos(line.angle) * line.len, line.y + Math.sin(line.angle) * line.len);
+              ctx.stroke();
+            }
+          }
+          ctx.globalAlpha = 1;
           ctx.restore();
         }
         ctx.restore(); // Restore camera screenshake translation context
