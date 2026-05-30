@@ -1,0 +1,6 @@
+{
+  "name": "命运防线：极速版",
+  "description": "俯视角动作肉鸽像素风小游戏，结合独特塔罗占卜机制，体验极限极速挑战！",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
